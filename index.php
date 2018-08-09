@@ -28,7 +28,7 @@ global $pageStatus;
 
 //case user not logged in
 if (!isset($_SESSION['user']['id'])) {
-    include("login.php");
+    include("loginForm.php");
 
 //case logged AND a page is requested
 } else if (isset($_GET['id'])) {

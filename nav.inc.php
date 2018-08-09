@@ -29,9 +29,6 @@ include_once("functionsSql.inc.php");
             <li class="nav-item">
                 <a class="nav-link" href="?id=' . fctUrlOpensslCipher("messages.php") . '"><i class="fas fa-envelope"></i>&nbsp;Messages</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="?id=' . fctUrlOpensslCipher("chatbox.php") . '"><i class="fas fa-envelope"></i>&nbsp;Chatbox</a>
-            </li>
             ';
         if ($_SESSION['user']['admin'] == 1) {
             echo '

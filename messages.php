@@ -1,141 +1,119 @@
 <?php
 /**
- * Sunject: Displays a list of messages
+ * Created by PhpStorm.
  * User: Frank
- * Date: 03/08/2018
- * Time: 16:35
+ * Date: 08/08/2018
+ * Time: 13:19
  */
+//
+global $pageParameter;
+//global $pageStatus;
+//$infoMessage="";
 
-//$subjectList=;
-//$messageList=;
+$subjectList = fctSubjectList($_SESSION['user']['id']);
+$subId = 0;
+if ($pageParameter > 0) { //a subject is selected
+    $subId = $pageParameter;
 
+} else { //no subject selected take the last one
+    if (isset($subjectList[0]['sub_id']) && $subjectList[0]['sub_id'] > 0) { //user has a subject
+        $subId = $subjectList[0]['sub_id'];
+
+    } else {
+        $subId = 0;
+    }
+}
+$messageList = fctMessageList($subId);
+include("messageForm.php");
 ?>
 <link rel="stylesheet" href="css/messaging.css"/>
-<div class="container container-fluid mt-4">
 
-    <div class="messaging">
+<div class="container container-fluid">
 
-        <div class="inbox_msg">
+    <div class="chatbox">
 
-            <div class="inbox_people">
-
-                <div class="headind_srch">
-
-                    <div class="recent_heading">
-                        <h4>Recent</h4>
-                    </div>
-
-                    <div class="srch_bar">
-                        <div class="stylish-input-group">
-                            <input type="text" class="search-bar" placeholder="Search">
-                            <span class="input-group-addon">
-                                <button type="button"> <i class="fa fa-search" aria-hidden="true"></i> </button>
-                            </span>
-                        </div>
-                    </div>
+        <div class="inbox">
+            <div class="inbox_header">
+                <div class="inbox_title">
+                    <h4>Inbox</h4>
+                </div>
+                <div class="inbox_search">
+                    <input class="searchField" type="text" name="SearchInbox" placeholder="Search..."/>
                 </div>
 
-                <div class="inbox_chat">
+            </div>
+            <div class="inbox_list">
 
-                    <div class="chat_list active_chat">
-                        <div class="chat_people">
-                            <div class="chat_img"><img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"></div>
-                            <div class="chat_ib">
-                                <h5>Sunil Rajput <span class="chat_date">Dec 25</span></h5>
-                                <p>Test, which is a new approach to have all solutions
-                                    astrology under one roof.</p>
-                            </div>
+                <?php if ($subId > 0) {
+                    foreach ($subjectList as $item) {
+
+                        $item['sub_id'] == $subId ? $active = 1 : $active = 0;
+
+                        if ($active == 1) {
+                            echo '<div class="inbox_item active_item">';
+                        } else {
+                            echo '<div class="inbox_item" onclick="window.location = \'?id=' . fctUrlOpensslCipher("messages.php," . $item["sub_id"]) . '\'">';
+                        }
+
+                        echo '<div class="item_icon">
+                        <img src="https://www.w3schools.com/howto/img_avatar.png" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">
+                    </div>
+                    <div class="item_content">
+                        <div class="item_details">
+                            <h5>' . $item["usr_email"] . ' <span>' . $item["sub_date"] . '</span></h5>
+                        </div>
+                        <div class="item_subject">
+                            ' . $item["sub_name"] . '
                         </div>
                     </div>
+                </div>';
+                    }
+                } ?>
 
-                    <div class="chat_list">
-                        <div class="chat_people">
-                            <div class="chat_img"><img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"></div>
-                            <div class="chat_ib">
-                                <h5>Sunil Rajput <span class="chat_date">Dec 25</span></h5>
-                                <p>Test, which is a new approach to have all solutions
-                                    astrology under one roof.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="chat_list">
-                        <div class="chat_people">
-                            <div class="chat_img"><img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"></div>
-                            <div class="chat_ib">
-                                <h5>Sunil Rajput <span class="chat_date">Dec 25</span></h5>
-                                <p>Test, which is a new approach to have all solutions
-                                    astrology under one roof.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
             </div>
 
+            <button type="button" class="btn" data-toggle="modal" data-target="#myModal"><i class="fa fa-plus" aria-hidden="true"></i> New</button>
+
+        </div>
+        <div class="history">
             <div class="mesgs">
+                <?php if ($subId > 0) {
+                    foreach ($messageList as $item) {
 
-                <div class="msg_history">
+                        if ($item['usr_id'] != $_SESSION['user']['id']) {//received message
 
-                    <div class="incoming_msg">
-
-                        <div class="incoming_msg_img"><img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"></div>
-                        <div class="received_msg">
-                            <div class="received_withd_msg">
-                                <p>Test which is a new approach to have all
-                                    solutions</p>
-                                <span class="time_date"> 11:01 AM    |    June 9</span></div>
+                            echo '<div class="message_in">
+                    <div class="message_icon">
+                        <img src="https://www.w3schools.com/howto/img_avatar.png" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">
+                    </div>
+                    <div class="message_in_content">
+                        <div class="message_body">
+                            <p>' . $item["msg_content"] . '</p>
                         </div>
+                        <div class="message_details">' . $item["msg_date"] . '</div>
                     </div>
+                </div>';
 
-                    <div class="outgoing_msg">
-                        <div class="sent_msg">
-                            <p>Test which is a new approach to have all
-                                solutions</p>
-                            <span class="time_date"> 11:01 AM    |    June 9</span></div>
-                    </div>
 
-                    <div class="incoming_msg">
-                        <div class="incoming_msg_img"><img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"></div>
-                        <div class="received_msg">
-                            <div class="received_withd_msg">
-                                <p>Test, which is a new approach to have</p>
-                                <span class="time_date"> 11:01 AM    |    Yesterday</span></div>
+                        } else {//sent message
+                            echo '<div class="message_out">
+                    <div class="message_out_content">
+                        <div class="message_body">
+                            <p>' . $item["msg_content"] . '</p>
                         </div>
+                        <div class="message_details">' . $item["msg_date"] . '</div>
                     </div>
+                </div>';
+                        }
 
-                    <div class="outgoing_msg">
-                        <div class="sent_msg">
-                            <p>Apollo University, Delhi, India Test</p>
-                            <span class="time_date"> 11:01 AM    |    Today</span></div>
-                    </div>
+                    }
+                } ?>
 
-                    <div class="incoming_msg">
-                        <div class="incoming_msg_img"><img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"></div>
-                        <div class="received_msg">
-                            <div class="received_withd_msg">
-                                <p>We work directly with our designers and suppliers,
-                                    and sell direct to you, which means quality, exclusive
-                                    products, at a price anyone can afford.</p>
-                                <span class="time_date"> 11:01 AM    |    Today</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="type_msg">
-                    <div class="input_msg_write">
-                        <input type="text" class="write_msg" placeholder="Type a message"/>
-                        <button class="msg_send_btn" type="button"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
-                    </div>
-                </div>
             </div>
         </div>
-
-
-        <p class="text-center top_spac"> Design by <a target="_blank" href="#">Sunil Rajput</a></p>
-
+        <div class="message_new">
+            <textarea name="message"></textarea>
+        </div>
     </div>
-
-
 
 </div>

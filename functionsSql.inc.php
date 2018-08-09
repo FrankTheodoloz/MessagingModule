@@ -363,6 +363,7 @@ function fctUsersNotGroup($id)
     $db = NULL; // Close connection
     return $groupMembersList;
 }
+
 /* Usergroup ------------------------------------------------------------------------------ */
 /***
  * fctGroupAdd : Add a Group and return lastInsertId()
@@ -553,6 +554,33 @@ function fctSubjectAdd($subjectName, $categoryId)
     return $lastId;
 }
 
+function fctSubjectList($userId)
+{
+
+    global $dsn, $dbUser, $dbPassword;
+
+    try {
+        $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
+
+        $sql = $db->prepare("SELECT DISTINCT (s.sub_id), s.sub_date, s.sub_name, u.usr_name, u.usr_lastname, u.usr_email
+                                        FROM subject s
+                                        JOIN message m on m.msg_subid = sub_id
+                                        JOIN user u ON u.usr_id = m.msg_from
+                                        WHERE (m.msg_from = :userId OR m.msg_to = :userId) AND m.msg_from <> :userId
+                                        ORDER BY s.sub_date DESC");
+        $sql->bindParam(':userId', $userId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $settingsList = $sql->fetchall(PDO::FETCH_BOTH);
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $settingsList;
+
+
+}
 
 
 /* Message -------------------------------------------------------------------------------- */
@@ -562,20 +590,22 @@ function fctSubjectAdd($subjectName, $categoryId)
  * @param $to
  * @param $subId
  * @param $content
+ * @param $date
  * @return bool|string
  */
-function fctMessageAdd($from, $to, $subId, $content)
+function fctMessageAdd($from, $to, $subId, $content, $date= NULL)
 {
     global $dsn, $dbUser, $dbPassword;
 
     try {
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        $sql = $db->prepare("INSERT INTO message (msg_from, msg_to, msg_subid, msg_content) VALUES (:from, :to, :subId, :content)");
+        $sql = $db->prepare("INSERT INTO message (msg_from, msg_to, msg_subid, msg_content, msg_date) VALUES (:from, :to, :subId, :content, :date)");
         $sql->bindParam(':from', $from, PDO::PARAM_INT);
         $sql->bindParam(':to', $to, PDO::PARAM_INT);
         $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
         $sql->bindParam(':content', $content, PDO::PARAM_STR);
+        $sql->bindParam(':date', $date, PDO::PARAM_STR);
         $sql->execute();
 
         $lastId = $db->lastInsertId();
@@ -592,6 +622,7 @@ function fctMessageAdd($from, $to, $subId, $content)
     return $lastId;
 }
 
+
 /***
  * fctMessageList : Return Messages in an array
  * @param $subjectId (optional: default All)
@@ -606,7 +637,7 @@ function fctMessageList($subjectId = 0)
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         if ($subjectId > 0) {
-            $sql = $db->prepare("SELECT * FROM message WHERE msg_subid=:subid");
+            $sql = $db->prepare("SELECT u.usr_id, u.usr_name, u.usr_name, u.usr_lastname, m.msg_date, m.msg_content FROM message m JOIN user u ON u.usr_id =  m.msg_from WHERE msg_subid=:subid");
             $sql->bindParam(':subid', $subjectId, PDO::PARAM_INT);
         } else {
             $sql = $db->prepare("SELECT * FROM message");
@@ -914,14 +945,16 @@ function demoData()
     fctCategoryAdd('TEST', 'Test data');
 
     fctSubjectAdd('Subject1', 1);
-    fctMessageAdd(1, 3, 1, 'Message 1.1');
-    fctMessageAdd(3, 1, 1, 'Message 1.2');
+    fctMessageAdd(1, 3, 1, 'Message 1.1',"2018-08-01");
+    fctMessageAdd(3, 1, 1, 'Message 1.2', "2018-08-02 13:22:12");
 
     fctSubjectAdd('Subject2', 1);
-    fctMessageAdd(1, 3, 2, 'Message 2.1');
-    fctMessageAdd(3, 1, 2, 'Message 2.1');
+    fctMessageAdd(1, 3, 2, 'Message 2.1', "2018-08-03 13:22:12");
+    fctMessageAdd(3, 1, 2, 'Message 2.2', "2018-08-04 13:22:12");
 
+    fctMessageAdd(1, 3, 1, 'Message 1.3', "2018-08-09 13:22:12");
 
+    fctMessageAdd(1, 3, 1, 'Message 1.4', NULL);
 }
 
 //demoData();
