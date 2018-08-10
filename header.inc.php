@@ -20,6 +20,9 @@
     <script src="lib/popper.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
 
+    <link href="css/jquery.toast.min.css" rel="stylesheet">
+    <script src="js/jquery.toast.min.js"></script>
+
     <title><?= fctSettingItem('SITE_CONFIG', 'SITE_NAME') ?></title>
 
 </head>

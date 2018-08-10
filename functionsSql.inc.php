@@ -351,7 +351,10 @@ function fctUsersNotGroup($id)
     try {
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        $sql = $db->prepare("SELECT * FROM  user u WHERE u.usr_id IN (SELECT DISTINCT(u.usr_id) FROM user u LEFT OUTER JOIN membership m ON m.mem_usrid = u.usr_id AND m.mem_grpid <> :id)");
+        $sql = $db->prepare("SELECT usr_id, usr_name, usr_lastname, usr_email, usr_active
+                                        FROM user
+                                        WHERE usr_id NOT IN(SELECT mem_usrid FROM membership WHERE mem_grpid = :id)
+                                        ORDER BY usr_lastname;");
         $sql->bindParam(':id', $id, PDO::PARAM_INT);
 
         $sql->execute();
@@ -562,11 +565,11 @@ function fctSubjectList($userId)
     try {
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        $sql = $db->prepare("SELECT DISTINCT (s.sub_id), s.sub_date, s.sub_name, u.usr_name, u.usr_lastname, u.usr_email
+        $sql = $db->prepare("SELECT DISTINCT (s.sub_id), s.sub_date, s.sub_name, u.usr_id, u.usr_name, u.usr_lastname, u.usr_email
                                         FROM subject s
                                         JOIN message m on m.msg_subid = sub_id
                                         JOIN user u ON u.usr_id = m.msg_from
-                                        WHERE (m.msg_from = :userId OR m.msg_to = :userId) AND m.msg_from <> :userId
+                                        WHERE (m.msg_from = :userId OR m.msg_to = :userId) AND (m.msg_date = s.sub_date)
                                         ORDER BY s.sub_date DESC");
         $sql->bindParam(':userId', $userId, PDO::PARAM_INT);
         $sql->execute();
@@ -582,6 +585,29 @@ function fctSubjectList($userId)
 
 }
 
+function fctSubjectDelete($subId)
+{
+    fctMessageSubDelete($subId);
+
+    global $dsn, $dbUser, $dbPassword;
+
+    try {
+        $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
+
+        $sql = $db->prepare("DELETE FROM subject WHERE sub_id =:subId");
+        $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $result = $sql->RowCount();
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $result;
+
+
+}
 
 /* Message -------------------------------------------------------------------------------- */
 /***
@@ -622,7 +648,25 @@ function fctMessageAdd($from, $to, $subId, $content, $date= NULL)
     return $lastId;
 }
 
+function fctMessageSubDelete($subId)
+{
+    global $dsn, $dbUser, $dbPassword;
 
+    try {
+        $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
+
+        $sql = $db->prepare("DELETE FROM message WHERE msg_subid = :subId");
+        $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $result = $sql->RowCount();
+
+    } catch (PDOException $e) {
+            die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $result;
+}
 /***
  * fctMessageList : Return Messages in an array
  * @param $subjectId (optional: default All)

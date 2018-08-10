@@ -103,7 +103,7 @@ function fctUrlOpensslDecipher($ciphertext)
     $hmac = substr($c, $ivlen, $sha2len = 32);
     $ciphertext_raw = substr($c, $ivlen + $sha2len);
 
-    $original_plaintext = openssl_decrypt($ciphertext_raw, $cipher, $key,  OPENSSL_RAW_DATA, $iv);
+    $original_plaintext = openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv);
     $calcmac = hash_hmac('sha256', $ciphertext_raw, $key, $as_binary = true);
     if (hash_equals($hmac, $calcmac))//PHP 5.6+ timing attack safe comparison
     {
@@ -116,8 +116,9 @@ function fctUrlOpensslDecipher($ciphertext)
  * Reference: https://www.w3schools.com/bootstrap4/bootstrap_filters.asp
  * @return string
  */
-function fctFilterJS(){
-    return'<script>
+function fctFilterJS()
+{
+    return '<script>
     $(document).ready(function () {
         $("#myInput").on("keyup", function () {
             var value = $(this).val().toLowerCase();
@@ -129,6 +130,7 @@ function fctFilterJS(){
     </script>';
 
 }
+
 /***
  * base64_url_en/de-code
  * Reference : https://stackoverflow.com/a/5835352
@@ -144,4 +146,48 @@ function fctBase64UrlDecode($input)
 {
     return base64_decode(strtr($input, '._-', '+/='));
 }
+
+/***
+ * Toaster
+ * Resource :
+ *  https://kamranahmed.info/toast
+ *  https://github.com/kamranahmedse/jquery-toast-plugin MIT LICENCE
+ * @param string $type
+ *  warning, success, error, information
+ * @param string $title
+ *  title
+ * @param string $content
+ *  message
+ * @param $duration
+ *  default=5000
+ */
+function fctShowToast($type, $title, $content, $duration = 5000)
+{
+    echo '<script>
+    $.toast({
+        
+        heading: "'.$title.'", // Optional heading to be shown on the toast
+        text: "'.$content.'", // Text that is to be shown in the toast
+        icon: "'.$type.'", // Warning, success, error, information
+        // bgColor: "#444444",  // Background color of the toast [NO ICON]
+        // textColor: "#eeeeee",  // Text color of the toast [NO ICON]
+        showHideTransition: "fade", // fade, slide or plain
+        allowToastClose: true, // Boolean value true or false
+        hideAfter: '.$duration.', // false to make it sticky or number representing the miliseconds as time after which toast needs to be hidden
+        stack: 5, // false if there should be only one toast at a time or a number representing the maximum number of toasts to be shown at a time
+        position: "bottom-left", // bottom-center/right/left or top-center/right/left or mid-center or an object representing the left, right, top, bottom values
+
+        textAlign: "left",  // Left, right or center
+        loader: true,  // Whether to show loader or not. True by default
+        loaderBg: "#9EC600",  // Background color of the toast loader
+        // beforeShow: function () {}, // will be triggered before the toast is shown
+        // afterShown: function () {}, // will be triggered after the toat has been shown
+        // beforeHide: function () {}, // will be triggered before the toast gets hidden
+        // afterHidden: function () {}  // will be triggered after the toast has been hidden
+    });
+</script>';
+}
+
+?>
+
 

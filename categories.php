@@ -5,17 +5,18 @@
  * Date: 05/08/2018
  * Time: 13:43
  */
-global $pageParameter;
-global $pageStatus;
+global $pageParameter; //updated category
+global $pageStatus; //status message after insert/delete
 $infoMessage="";
 
 if(!$pageStatus==0){
     $record=fctCategoryList($pageParameter);
     $infoMessage="Category #".$record[0]['cat_id']." ".$record[0]['cat_name']." (" . $record[0]['cat_description'].") ".$pageStatus;
     $pageStatus ="";
+    fctShowToast("success", "Success", $infoMessage,2000);
 }
-
 $categoryList = fctCategoryList();
+
 ?>
 
 <div class="container container-fluid mt-4 mb-4">

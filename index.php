@@ -18,7 +18,7 @@ fctSessionCheck();
 include_once("header.inc.php");
 
 ?>
-<body>
+<body style="padding-bottom: 35px;">
 
 <?php
 include_once("nav.inc.php");

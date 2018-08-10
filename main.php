@@ -8,7 +8,7 @@
 
 include_once("functionsHtml.inc.php");
 include_once("nav.inc.php");
-
+fctShowToast("Success", "Success", "Hello");
 ?>
 
 <div class="jumbotron jumbotron-fluid">
@@ -19,5 +19,4 @@ include_once("nav.inc.php");
         <p>This is the welcome screen with an overview of the recent messages.</p>
     </div>
 </div>
-
 
