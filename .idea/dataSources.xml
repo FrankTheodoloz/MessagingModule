@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="ContactModule@192.168.1.10" uuid="6da1271e-00b9-4e35-88ae-b33b3ede2c95">
+    <data-source source="LOCAL" name="MessagingModule" uuid="d9e1835d-e7a3-4159-bcee-e68f779ead84">
       <driver-ref>mysql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://192.168.1.10:3306/ContactModule</jdbc-url>
-      <default-dialect>MySQL</default-dialect>
+      <jdbc-url>jdbc:mysql://192.168.1.10:3306/MessagingModule</jdbc-url>
       <driver-properties>
         <property name="autoReconnect" value="true" />
         <property name="zeroDateTimeBehavior" value="convertToNull" />

@@ -23,7 +23,7 @@ if ($pageParameter > 0) { //a subject is selected
         $subId = 0;
     }
 }
-$messageList = fctMessageList($subId);
+$messageList = fctMessageList($_SESSION['user']['id'], $subId, 1);
 $userList = fctUserList(0);
 $to;
 ?>
@@ -38,11 +38,9 @@ $to;
                 <div class="inbox_title">
                     <h2>Inbox</h2>
                 </div>
-                <!-- todo future use -->
                 <div class="inbox_search">
-                    <input class="searchField" type="text" id="myInput" name="SearchInbox" placeholder="Search..."/>
+                    <input class="searchField" type="text" id="myInput" name="SearchInbox" placeholder="Filter subjects..."/>
                 </div>
-
 
             </div>
             <div class="inbox_list" id="myTable">
@@ -51,6 +49,7 @@ $to;
                     foreach ($subjectList as $item) {
 
                         $item['sub_id'] == $subId ? $active = 1 : $active = 0;
+                        $item['usr_avatar'] ? $image = '<img src="' . $item['usr_avatar'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">' : $image = '<img avatar="' . $item['usr_name'] . " " . $item['usr_lastname'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">';
 
                         if ($active == 1) { //active subject
                             $to = $item['usr_id']; //current correspondant
@@ -59,12 +58,10 @@ $to;
                             echo '<div class="inbox_item" onclick="window.location = \'?id=' . fctUrlOpensslCipher("messages.php," . $item["sub_id"]) . '\'">';
                         }
 
-                        echo '<div class="item_icon">
-                        <img src="https://www.w3schools.com/howto/img_avatar.png" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">
-                    </div>
+                        echo '<div class="item_icon">' . $image . '</div>
                     <div class="item_content">
                         <div class="item_details">
-                            <h5>' . $item["usr_email"] . ' <span>' . date("d/m/Y",strtotime($item["sub_date"])) . '</span></h5>
+                            <h5>' . $item["usr_name"] . ' ' . $item["usr_lastname"] . ' <span>' . date("d/m/Y", strtotime($item["sub_lastdate"])) . '</span></h5>
                         </div>
                         <div class="item_subject">
                             ' . $item["sub_name"] . '
@@ -87,17 +84,18 @@ $to;
                 <?php if ($subId > 0) {
                     foreach ($messageList as $item) {
 
+                        $tooltip=' data-toggle="tooltip" data-placement="bottom" title="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"';
+
                         if ($item['usr_id'] != $_SESSION['user']['id']) {//received message
+                            $item['usr_avatar'] ? $image = '<img src="' . $item['usr_avatar'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"'.$tooltip.'>' : $image = '<img avatar="' . $item['usr_name'] . " " . $item['usr_lastname'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"'.$tooltip.'>';
 
                             echo '<div class="message_in">
-                    <div class="message_icon">
-                        <img src="https://www.w3schools.com/howto/img_avatar.png" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">
-                    </div>
+                    <div class="message_icon">'.$image.'</div>
                     <div class="message_in_content">
                         <div class="message_body">
                             <p>' . $item["msg_content"] . '</p>
                         </div>
-                        <div class="message_details">' . date("d/m/Y",strtotime($item["msg_date"])) . '</div>
+                        <div class="message_details">' . date("d/m/Y | H:i", strtotime($item["msg_date"])) . '</div>
                     </div>
                 </div>';
 
@@ -108,7 +106,7 @@ $to;
                         <div class="message_body">
                             <p>' . $item["msg_content"] . '</p>
                         </div>
-                        <div class="message_details">' . date("d/m/Y | h:m",strtotime($item["msg_date"])) . '</div>
+                        <div class="message_details">' . date("d/m/Y | H:i", strtotime($item["msg_date"])) . '</div>
                     </div>
                 </div>';
                         }
@@ -138,8 +136,6 @@ $to;
     </div>
 
     <!-- Modal form New message -------------------------------------------------------------- -->
-    <!-- todo pretty dropdown user-->
-    <!--    <link rel="stylesheet" href="/css/dropdownUsers.css">-->
     <div class="container">
 
         <form name="NewMessageForm" action="messageNew.php" target="_self" method="post">
@@ -155,14 +151,13 @@ $to;
                         <div class="modal-body">
                             <div class="form-group mt-2">
 
-                                <select name="to" id="to" class="form-control mb-2" required>
+                                <select name="to[]" id="to" class="selectpicker form-control mb-2" multiple required>
 
-                                    <option value="" disabled selected>Select a user below...</option>
 
                                     <?php
                                     foreach ($userList as $item) {
                                         if ($item['usr_id'] != $_SESSION['user']['id']) {
-                                            echo '<option value="' . $item['usr_id'] . '">' . $item['usr_name'] . " " . $item['usr_lastname'] . '</option>';
+                                            echo '<option value="' . $item['usr_id'] . '" data-subtext="' . $item['usr_lastname'] . '">' . $item['usr_name'] . '</option>';
                                         }
                                     }
                                     ?>

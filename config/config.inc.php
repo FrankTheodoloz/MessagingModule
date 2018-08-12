@@ -7,10 +7,9 @@
  */
 
 //Constants
-define("CONST_TIMEOUT_DURATION", 1800);
+define("CONST_TIMEOUT_DURATION", 1800); //TODO Site parameter in DB
 define("CONST_DEBUGMODE", 0);
-define("CONST_BCRYPT_COST", 12);
-
+define("CONST_BCRYPT_COST", 12); //takes significantly more time above 12
 
 //Globals
 global $dbUser;
@@ -19,14 +18,14 @@ global $dsn;
 
 //SQL DB Connection
 $dbServer = "192.168.1.10";
-$dbName = "ContactModule";
+$dbName = "MessagingModule";
 $dbUser = "frank";
 $dbPassword = "1234..aa";
 $dsn = "mysql:host=$dbServer;dbname=$dbName;charset=utf8";
 
-
+//TODO ANALYSE MORE IN DETAILS
 /***
- * Class MyPDO :
+ * Class MyPDO : This reduces number of parameters in the SQL functions
  * Reference: https://stackoverflow.com/a/9328613
  */
 class MyPDO extends PDO
@@ -38,6 +37,7 @@ class MyPDO extends PDO
     }
 }
 
+//TODO implement visible timeout counter with redirection
 /***
  * fctSessionCheck : Session timeout
  */
@@ -52,7 +52,5 @@ function fctSessionCheck()
     }
     $_SESSION['LAST_ACTIVITY'] = $_SERVER['REQUEST_TIME'];
 }
-
-
 
 ?>

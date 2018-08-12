@@ -22,6 +22,10 @@
 
     <link href="css/jquery.toast.min.css" rel="stylesheet">
     <script src="js/jquery.toast.min.js"></script>
+    <link href="css/bootstrap-select.min.css" rel="stylesheet">
+    <script src="js/bootstrap-select.min.js"></script>
+
+    <script src="js/letter-avatars.js"></script>
 
     <title><?= fctSettingItem('SITE_CONFIG', 'SITE_NAME') ?></title>
 

@@ -8,10 +8,10 @@
 
 include_once("config/config.inc.php");
 
-/* Bcrypt --------------------------------------------------------------------------------- */
+/* BCrypt --------------------------------------------------------------------------------- */
 /***
- * fctBcryptHash : Return $password BCrypt hash
- * @param $password
+ * fctBcryptHash : Return BCrypt hash of password
+ * @param string $password
  * @return bool|string
  */
 function fctBcryptHash($password)
@@ -26,19 +26,18 @@ function fctBcryptHash($password)
 /* User ----------------------------------------------------------------------------------- */
 /***
  * fctUserAdd : Add a User and return lastInsertId()
- * @param $name
- * @param $lastname
- * @param $email
- * @param $password
+ * @param string $name
+ * @param string $lastname
+ * @param string $email
+ * @param string $password
  * @return bool|string
  */
 function fctUserAdd($name, $lastname, $email, $password)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
         $pwdhash = fctBcryptHash($password);
 
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("INSERT INTO user (usr_name, usr_lastname, usr_email, usr_pwdhash) VALUES (:name, :lastname, :email, :pwdhash)");
@@ -54,7 +53,7 @@ function fctUserAdd($name, $lastname, $email, $password)
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Email <em>{$email}</em> already registered.";
+            $messg = "Email <em>{$email}</em> already registered."; //TODO
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
@@ -63,10 +62,10 @@ function fctUserAdd($name, $lastname, $email, $password)
 }
 
 /***
- * fctUserEdit : Update a User and return rowCount() otherwise False
- * @param $id
- * @param $name
- * @param $lastname
+ * fctUserEdit : Update a User and return rowCount()
+ * @param int $id
+ * @param string $name
+ * @param string $lastname
  * @return bool|int
  */
 function fctUserEdit($id, $name, $lastname)
@@ -92,16 +91,15 @@ function fctUserEdit($id, $name, $lastname)
 }
 
 /***
- * fctUserEditEmail : Update a User email and return rowCount() otherwise False
- * @param $id
- * @param $email
+ * fctUserEditEmail : Update a User email and return rowCount()
+ * @param int $id
+ * @param string $email
  * @return bool|int
  */
 function fctUserEditEmail($id, $email)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("UPDATE user set usr_email=:email WHERE usr_id=:id");
@@ -113,29 +111,28 @@ function fctUserEditEmail($id, $email)
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Email <em>{$email}</em> already registered.";
+            $messg = "Email <em>{$email}</em> already registered."; //TODO
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
-        return false;
+        return $messg;
     }
     $db = NULL; // Close connection
     return $result;
 }
 
 /***
- * fctUserEditPwd : Update a User Password and return rowCount() otherwise False
+ * fctUserEditPwd : Update a User Password and return rowCount()
  * @param $id
  * @param $pwd
  * @return bool|int
  */
 function fctUserEditPwd($id, $pwd)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
         $pwdhash = fctBcryptHash($pwd);
 
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("UPDATE user set usr_pwdhash=:pwdhash WHERE usr_id=:id");
@@ -153,17 +150,17 @@ function fctUserEditPwd($id, $pwd)
 }
 
 /***
- * fctUserIfAdmin : Return if a user is admin or not
- * @param $id
- * @param $pwd
+ * fctUserIfAdmin : Return boolean value if a user is admin or not
+ * @param int $id
+ * @param string $pwd
  * @return bool|int
  */
 function fctUserIfAdmin($id)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
+
         $sql = $db->prepare("SELECT COUNT(*) FROM user u JOIN membership m ON m.mem_usrid = u.usr_id JOIN ugroup g on g.grp_id = m.mem_grpid WHERE u.usr_id=:id AND g.grp_name= 'ADMIN'");
         $sql->bindParam(':pwdhash', $pwdhash, PDO::PARAM_INT);
         $sql->bindParam(':id', $id, PDO::PARAM_INT);
@@ -179,19 +176,20 @@ function fctUserIfAdmin($id)
 }
 
 /***
- * fctUserEnable : Reactivate a user, return rowCount()
- * @param $id
+ * fctUserChangeActive : Change the user active status return rowCount()
+ * @param int $id
+ * @param int $active
  * @return int
  */
-function fctUserEnable($id)
+function fctUserChangeActive($id, $active)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        $sql = $db->prepare("UPDATE user set usr_active=1 WHERE usr_id=:id");
+        $sql = $db->prepare("UPDATE user set usr_active=:active WHERE usr_id=:id");
         $sql->bindParam(':id', $id, PDO::PARAM_INT);
+        $sql->bindParam(':active', $active, PDO::PARAM_INT);
         $sql->execute();
 
         $result = $sql->rowCount();
@@ -204,46 +202,19 @@ function fctUserEnable($id)
 }
 
 /***
- * fctUserDisable : Deactivate a User, return rowCount()
- * @param $id
- * @return int
- */
-function fctUserDisable($id)
-{
-    global $dsn, $dbUser, $dbPassword;
-
-    try {
-        $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
-
-        $sql = $db->prepare("UPDATE user set usr_active=0 WHERE usr_id=:id");
-        $sql->bindParam(':id', $id, PDO::PARAM_INT);
-        $sql->execute();
-
-        $result = $sql->rowCount();
-
-    } catch (PDOException $e) {
-        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
-    }
-    $db = NULL; // Close connection
-    return $result;
-}
-
-/***
- * fctUserList : Return User(s) in an array
- * @param $userId (optional: default All)
+ * fctUserList : Return user-s in an array
+ * @param int $id (Default 0 = all users)
  * @return mixed
  */
-function fctUserList($userId = 0)
+function fctUserList($id = 0)
 {
-
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        if ($userId > 0) {
-            $sql = $db->prepare("SELECT * FROM user WHERE usr_id=:userId");
-            $sql->bindParam(':userId', $userId, PDO::PARAM_INT);
+        if ($id > 0) {
+            $sql = $db->prepare("SELECT * FROM user WHERE usr_id=:id");
+            $sql->bindParam(':id', $id, PDO::PARAM_INT);
         } else {
             $sql = $db->prepare("SELECT * FROM user");
         }
@@ -260,15 +231,15 @@ function fctUserList($userId = 0)
 
 /***
  * fctUserLogin : Return True if login is found AND password matches
- * @param $email
- * @param $password
+ * @param string $email
+ * @param string $password
  * @return bool
  */
 function fctUserLogin($email, $password)
 {
-    global $dsn, $dbUser, $dbPassword, $loginMessage;
-
     try {
+        global $dsn, $dbUser, $dbPassword, $loginMessage;
+
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
         $sql = $db->prepare("SELECT * FROM user u
                                         JOIN membership m ON m.mem_usrid = u.usr_id AND u.usr_email = :email
@@ -308,7 +279,7 @@ function fctUserLogin($email, $password)
         }
 
     } catch (PDOException $e) {
-        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage()); //TODO
     }
     $db = NULL; // Close connection
     return true;
@@ -316,14 +287,13 @@ function fctUserLogin($email, $password)
 
 /***
  * fctUsersFromGroup: Return a list of users from a group
- * @param $id
+ * @param int $id
  * @return array
  */
 function fctUsersFromGroup($id)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("SELECT * FROM user u JOIN membership m ON m.mem_usrid = u.usr_id JOIN ugroup g ON g.grp_id = m.mem_grpid WHERE grp_id=:id");
@@ -339,16 +309,16 @@ function fctUsersFromGroup($id)
     return $groupMembersList;
 }
 
+//TODO OBSOLETE
 /***
  * fctUsersNotGroup: Return a list of users NOT in a group
- * @param $id
+ * @param int $id
  * @return array
  */
 function fctUsersNotGroup($id)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("SELECT usr_id, usr_name, usr_lastname, usr_email, usr_active
@@ -369,27 +339,27 @@ function fctUsersNotGroup($id)
 
 /* Usergroup ------------------------------------------------------------------------------ */
 /***
- * fctGroupAdd : Add a Group and return lastInsertId()
- * @param $groupName
+ * fctGroupAdd : Add a group and return lastInsertId()
+ * @param string $name
+ * @param string $description
  * @return bool|string
  */
-function fctGroupAdd($groupName, $groupDescription)
+function fctGroupAdd($name, $description)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        $sql = $db->prepare("INSERT INTO ugroup (grp_name, grp_description) VALUES (UPPER(:groupName),:groupDescription)");
-        $sql->bindParam(':groupName', $groupName, PDO::PARAM_STR);
-        $sql->bindParam(':groupDescription', $groupDescription, PDO::PARAM_STR);
+        $sql = $db->prepare("INSERT INTO ugroup (grp_name, grp_description) VALUES (UPPER(:name),:description)");
+        $sql->bindParam(':name', $name, PDO::PARAM_STR);
+        $sql->bindParam(':description', $description, PDO::PARAM_STR);
         $sql->execute();
 
         $lastId = $db->lastInsertId();
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry.";
+            $messg = "Duplicate entry."; //TODO
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
@@ -399,17 +369,16 @@ function fctGroupAdd($groupName, $groupDescription)
     return $lastId;
 }
 
-
 /***
- * fctGroupAdd : Add a Group and return lastInsertId()
- * @param $name
+ * fctGroupAdd : Edit a group and return rowCount()
+ * @param string $name
+ * @param string $description
  * @return bool|string$
  */
 function fctGroupEdit($id, $name, $description)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("UPDATE ugroup SET grp_name = UPPER(:name), grp_description = :description WHERE grp_id = :id");
@@ -422,7 +391,7 @@ function fctGroupEdit($id, $name, $description)
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry.";
+            $messg = "Duplicate entry."; //TODO
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
@@ -433,15 +402,14 @@ function fctGroupEdit($id, $name, $description)
 }
 
 /***
- * fctGroupList: Return Groups in an array
- * @param int $id (optional: default All)
+ * fctGroupList: Return group-s in an array
+ * @param int $id (default 0 = All)
  * @return array
  */
 function fctGroupList($id = 0)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         if ($id > 0) {
@@ -461,19 +429,17 @@ function fctGroupList($id = 0)
     return $groupList;
 }
 
-
 /* Membership ----------------------------------------------------------------------------- */
 /***
- * fctMembershipAdd : Add a relation btw a User and a Group, return lastInsertId()
- * @param $groupId
- * @param $userId
+ * fctMembershipAdd : Add a user->group relation and return rowCount()
+ * @param int $groupId
+ * @param int $userId
  * @return bool|string
  */
 function fctMembershipAdd($groupId, $userId)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("INSERT INTO membership (mem_grpid, mem_usrid) VALUES (:groupId, :userId)");
@@ -481,11 +447,11 @@ function fctMembershipAdd($groupId, $userId)
         $sql->bindParam(':userId', $userId, PDO::PARAM_INT);
         $sql->execute();
 
-        $result = $sql->RowCount();
+        $result = $sql->rowCount();
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry.";
+            $messg = "Duplicate entry."; //TODO
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
@@ -496,16 +462,15 @@ function fctMembershipAdd($groupId, $userId)
 }
 
 /***
- * fctMembershipRemove : Remove a relation btw a User and a Group, return rowCount()
- * @param $groupId
- * @param $userId
+ * fctMembershipRemove : Remove a user->group relation and return rowCount()
+ * @param int $groupId
+ * @param int $userId
  * @return bool|string
  */
 function fctMembershipRemove($groupId, $userId)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("DELETE FROM membership WHERE mem_grpid = :groupId AND mem_usrid = :userId");
@@ -513,7 +478,7 @@ function fctMembershipRemove($groupId, $userId)
         $sql->bindParam(':userId', $userId, PDO::PARAM_INT);
         $sql->execute();
 
-        $result = $sql->RowCount();
+        $result = $sql->rowCount();
 
     } catch (PDOException $e) {
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
@@ -526,16 +491,75 @@ function fctMembershipRemove($groupId, $userId)
 
 /* Subject -------------------------------------------------------------------------------- */
 /***
- * fctSubjectAdd : Add a Subject and return lastInsertId()
- * @param $subjectName
+ * fctSubjectNew: Add a subject, subject->user relation-s and first message return subject lastInsertId()
+ * @param int $from
+ * @param array $to
+ * @param string $subject
+ * @param string $content
+ * @param null $date
+ * @return bool|string
+ */
+function fctSubjectNew($from, $to, $subject, $content, $date = NULL)
+{
+    global $dsn, $dbUser, $dbPassword;
+    $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
+
+    if ($db->beginTransaction()) {
+        try {
+
+            //creation of subject, distribution and first message
+            $sql = $db->prepare("INSERT INTO subject (sub_name) VALUES (:subject)");
+            $sql->bindParam(':subject', $subject, PDO::PARAM_STR);
+            $sql->execute();
+            $lastSubjectId = $db->lastInsertId();
+
+            array_unshift($to , $from);
+            foreach ($to as $item) {
+
+                $sql = $db->prepare("INSERT INTO distribution (dis_subid, dis_usrid) VALUES (:subId, :usrId)");
+                $sql->bindParam(':subId', $lastSubjectId, PDO::PARAM_INT);
+                $sql->bindParam(':usrId', $item, PDO::PARAM_INT);
+                $sql->execute();
+
+            }
+
+            $sql = $db->prepare("INSERT INTO message (msg_from, msg_subid, msg_content, msg_date) VALUES (:from, :subId, :content, :date)");
+            $sql->bindParam(':from', $from, PDO::PARAM_INT);
+            $sql->bindParam(':subId', $lastSubjectId, PDO::PARAM_INT);
+            $sql->bindParam(':content', $content, PDO::PARAM_STR);
+            $sql->bindParam(':date', $date, PDO::PARAM_STR);
+            $sql->execute();
+
+            //commit when everything is fine
+            $db->commit();
+
+        } catch (PDOException $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
+                $messg = "Duplicate entry."; //TODO
+            } else {
+                die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+            }
+            return false;
+        }
+        $db = NULL; // Close connection
+        return $lastSubjectId;
+    }
+}
+
+//TODO:OBSOLETE
+/***
+ * fctSubjectAdd : Add a subject and return lastInsertId()
+ * @param string $subjectName
  * @param $categoryId
  * @return bool|string
  */
 function fctSubjectAdd($subjectName, $categoryId)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("INSERT INTO subject (sub_name, sub_catid) VALUES (:subjectName, :categoryId)");
@@ -547,7 +571,7 @@ function fctSubjectAdd($subjectName, $categoryId)
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry.";
+            $messg = "Duplicate entry."; //TODO
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
@@ -557,20 +581,24 @@ function fctSubjectAdd($subjectName, $categoryId)
     return $lastId;
 }
 
-function fctSubjectList($userId)
+//TODO:OBSOLETE
+/***
+ * fctSubjectList: Return subjects in an array
+ * @param int $userId
+ * @return array
+ */
+function fctSubjectListOld($userId)
 {
-
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        $sql = $db->prepare("SELECT DISTINCT (s.sub_id), s.sub_date, s.sub_name, u.usr_id, u.usr_name, u.usr_lastname, u.usr_email
+        $sql = $db->prepare("SELECT DISTINCT (s.sub_id), s.sub_lastdate, s.sub_name, u.usr_id, u.usr_name, u.usr_lastname, u.usr_email
                                         FROM subject s
                                         JOIN message m on m.msg_subid = sub_id
                                         JOIN user u ON u.usr_id = m.msg_from
-                                        WHERE (m.msg_from = :userId OR m.msg_to = :userId) AND (m.msg_date = s.sub_date)
-                                        ORDER BY s.sub_date DESC");
+                                        WHERE (m.msg_from = :userId OR m.msg_to = :userId) AND (m.msg_date = s.sub_lastdate)
+                                        ORDER BY s.sub_lastdate DESC");
         $sql->bindParam(':userId', $userId, PDO::PARAM_INT);
         $sql->execute();
 
@@ -581,54 +609,148 @@ function fctSubjectList($userId)
     }
     $db = NULL; // Close connection
     return $settingsList;
-
-
 }
 
+/***
+ * fctSubjectList: Return a user subjects list in an array
+ * @param int $id
+ * @return array
+ */
+function fctSubjectList($id)
+{
+    try {
+        global $dsn, $dbUser, $dbPassword;
+        $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
+
+        $sql = $db->prepare("SELECT DISTINCT (s.sub_id), s.sub_name, s.sub_lastdate, u.usr_id, u.usr_name, u.usr_lastname, usr_avatar
+                                        FROM notification n
+                                           JOIN message m ON m.msg_id = n.not_msgid
+                                           JOIN subject s ON s.sub_id = m.msg_subid
+                                           JOIN user u ON u.usr_id = s.sub_lastusrid
+                                        WHERE n.not_usrid = :userId
+                                        ORDER BY s.sub_lastdate DESC");
+        $sql->bindParam(':userId', $id, PDO::PARAM_INT);
+        $sql->execute();
+
+        $settingsList = $sql->fetchall(PDO::FETCH_BOTH);
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $settingsList;
+}
+
+//TODO:OBSOLETE
+/***
+ * fctSubjectDelete: Delete a subject
+ * @param $subId
+ * @return int
+ */
 function fctSubjectDelete($subId)
 {
     fctMessageSubDelete($subId);
 
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("DELETE FROM subject WHERE sub_id =:subId");
         $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
         $sql->execute();
 
-        $result = $sql->RowCount();
+        $result = $sql->rowCount();
 
     } catch (PDOException $e) {
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
     return $result;
+}
 
+/* Distribution --------------------------------------------------------------------------- */
+/***
+ * fctDistributionAdd : Add a relation user->subject and return rowCount()
+ * @param $subId
+ * @param $usrId
+ * @return bool|string
+ */
+function fctDistributionAdd($subId, $usrId)
+{
 
+    try {
+        global $dsn, $dbUser, $dbPassword;
+        $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
+
+        $sql = $db->prepare("INSERT INTO distribution (dis_subid, dis_usrid) VALUES (:subId, :usrId)");
+        $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
+        $sql->bindParam(':usrId', $usrId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $result = $sql->rowCount();
+
+    } catch (PDOException $e) {
+        if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
+            $messg = "Duplicate entry."; //TODO
+        } else {
+            die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+        }
+        return false;
+    }
+    $db = NULL; // Close connection
+    return $result;
+}
+
+/***
+ * fctDistributionRemove : Remove a relation user->subject and return rowCount()
+ * @param int $subId
+ * @param int $usrId
+ * @param int $notifications
+ * @return int
+ */
+function fctDistributionRemove($subId, $usrId, $notifications)
+{
+    try {
+        global $dsn, $dbUser, $dbPassword;
+        $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
+
+        $sql = $db->prepare("DELETE FROM distribution WHERE dis_subid=:subId AND dis_usrid=:usrId");
+        $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
+        $sql->bindParam(':usrId', $usrId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $result = $sql->rowCount();
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+
+    if ($notifications > 0) {
+        //TODO Remove notifications
+    } else {
+        return $result;
+    };
 }
 
 /* Message -------------------------------------------------------------------------------- */
+//TODO:OBSOLETE - done a check
 /***
  * fctMessageAdd : Add a Message and return lastInsertId()
- * @param $from
- * @param $to
- * @param $subId
- * @param $content
+ * @param int $from
+ * @param int $subId
+ * @param string $content
  * @param $date
  * @return bool|string
  */
-function fctMessageAdd($from, $to, $subId, $content, $date= NULL)
+function fctMessageAdd($from, $subId, $content, $date = NULL)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        $sql = $db->prepare("INSERT INTO message (msg_from, msg_to, msg_subid, msg_content, msg_date) VALUES (:from, :to, :subId, :content, :date)");
+        $sql = $db->prepare("INSERT INTO message (msg_from, msg_subid, msg_content, msg_date) VALUES (:from, :subId, :content, :date)");
         $sql->bindParam(':from', $from, PDO::PARAM_INT);
-        $sql->bindParam(':to', $to, PDO::PARAM_INT);
         $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
         $sql->bindParam(':content', $content, PDO::PARAM_STR);
         $sql->bindParam(':date', $date, PDO::PARAM_STR);
@@ -638,7 +760,7 @@ function fctMessageAdd($from, $to, $subId, $content, $date= NULL)
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry.";
+            $messg = "Duplicate entry."; //TODO
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
@@ -648,36 +770,41 @@ function fctMessageAdd($from, $to, $subId, $content, $date= NULL)
     return $lastId;
 }
 
+//TODO: OBSOLETE
+/***
+ * fctMessageSubDelete
+ * @param int $subId
+ * @return int
+ */
 function fctMessageSubDelete($subId)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("DELETE FROM message WHERE msg_subid = :subId");
         $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
         $sql->execute();
 
-        $result = $sql->RowCount();
+        $result = $sql->rowCount();
 
     } catch (PDOException $e) {
-            die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
     return $result;
 }
+
+//TODO : OBSOLETE
 /***
- * fctMessageList : Return Messages in an array
- * @param $subjectId (optional: default All)
+ * fctMessageList : Return Messages from a subject in an array
+ * @param int $subjectId (default 0 = All)
  * @return mixed
  */
-function fctMessageList($subjectId = 0)
+function fctMessageListOLD($subjectId = 0)
 {
-
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         if ($subjectId > 0) {
@@ -690,123 +817,93 @@ function fctMessageList($subjectId = 0)
         $sql->execute();
         $messageList = $sql->fetchall(PDO::FETCH_ASSOC);
 
-        $db = NULL; // Close connection
-        return $messageList;
 
     } catch (PDOException $e) {
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
-
+    $db = NULL; // Close connection
+    return $messageList;
 }
 
-/* -- Admin ------------------------------------------------------------------------------- */
 /***
- * fctCategoryAdd : Add a Category and return lastInsertId()
- * @param $name
- * @return bool|string$
+ * fctMessageList : Return Messages from a subject in an array
+ * @param int $userId
+ * @param int $subjectId
+ * @param int $deleted
+ * @return mixed
  */
-function fctCategoryAdd($name, $description)
+function fctMessageList($userId, $subjectId, $deleted)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        $sql = $db->prepare("INSERT INTO category (cat_name, cat_description) VALUES (:name, :description)");
-        $sql->bindParam(':name', $name, PDO::PARAM_STR);
-        $sql->bindParam(':description', $description, PDO::PARAM_STR);
-        $sql->execute();
+        $query = "SELECT u.usr_id, u.usr_name, u.usr_lastname, usr_avatar, m.msg_date, m.msg_content, n.not_read
+                    FROM message m
+                       JOIN subject s on s.sub_id = m.msg_subid
+                       JOIN distribution d on d.dis_subid = msg_subid
+                       JOIN user u ON u.usr_id = m.msg_from
+                       ";
+        !$deleted ?: $query .= "LEFT OUTER ";
+        $query .= "JOIN notification n ON n.not_msgid = m.msg_id
+                    WHERE d.dis_usrid = :usrId AND s.sub_id = :subId AND (n.not_usrid=:usrId OR n.not_usrid IS NULL)";
+        $sql = $db->prepare($query);
 
-        $lastId = $db->lastInsertId();
+        $sql->bindParam(':usrId', $userId, PDO::PARAM_INT);
+        $sql->bindParam(':subId', $subjectId, PDO::PARAM_INT);
+
+        $sql->execute();
+        $messageList = $sql->fetchall(PDO::FETCH_ASSOC);
+
 
     } catch (PDOException $e) {
-        if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry.";
-        } else {
-            die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
-        }
-        return false;
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
-    return $lastId;
+    return $messageList;
 }
 
+/* -- Notifications ----------------------------------------------------------------------- */
 /***
- * fctCategoryAdd : Add a Category and return lastInsertId()
- * @param $name
- * @return bool|string$
+ * fctNotificationRemove: Remove a notification and return rowCount()
+ * @param int $msgId
+ * @param int $usrId
+ * @return int
  */
-function fctCategoryEdit($id, $name, $description)
+function fctNotificationRemove($msgId, $usrId)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
-        $sql = $db->prepare("UPDATE category SET cat_name = :name, cat_description = :description WHERE cat_id = :id");
-        $sql->bindParam(':id', $id, PDO::PARAM_INT);
-        $sql->bindParam(':name', $name, PDO::PARAM_STR);
-        $sql->bindParam(':description', $description, PDO::PARAM_STR);
+        $sql = $db->prepare("DELETE FROM notification WHERE not_msgid=:msgId AND not_usrid=:usrId");
+        $sql->bindParam(':msgId', $msgId, PDO::PARAM_INT);
+        $sql->bindParam(':usrId', $usrId, PDO::PARAM_INT);
         $sql->execute();
 
         $result = $sql->rowCount();
 
     } catch (PDOException $e) {
-        if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry.";
-        } else {
-            die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
-        }
-        return false;
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
     return $result;
 }
 
-/***
- * fctCategoryList: Return Categories in an array
- * @param int $categoryId (optional: default All)
- * @return array
- */
-function fctCategoryList($categoryId = 0)
-{
-    global $dsn, $dbUser, $dbPassword;
-
-    try {
-        $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
-
-        if ($categoryId > 0) {
-            $sql = $db->prepare("SELECT * FROM category WHERE cat_id=:catId");
-            $sql->bindParam(':catId', $categoryId, PDO::PARAM_INT);
-        } else {
-            $sql = $db->prepare("SELECT * FROM category");
-        }
-
-        $sql->execute();
-
-        $list = $sql->fetchall(PDO::FETCH_BOTH);
-
-    } catch (PDOException $e) {
-        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
-    }
-    $db = NULL; // Close connection
-    return $list;
-}
-
+/* -- Admin ------------------------------------------------------------------------------- */
 
 /* Settings ------------------------------------------------------------------------------- */
 /***
  * fctSettingAdd : Add a Setting and return True or False
- * @param $name
- * @param $type
- * @param $value
+ * @param string $name
+ * @param string $type
+ * @param string $value
  * @return bool
  */
 function fctSettingAdd($type, $name, $value)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("INSERT INTO settings (set_type, set_name, set_value) VALUES (:type, :name, :value)");
@@ -817,7 +914,7 @@ function fctSettingAdd($type, $name, $value)
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Setting <em>{$name}</em> already existing.";
+            $messg = "Setting <em>{$name}</em> already existing."; //TODO
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
@@ -829,15 +926,14 @@ function fctSettingAdd($type, $name, $value)
 
 /***
  * fctSettingEdit : Edit a Setting and return rowCount()
- * @param $name
- * @param $value
+ * @param string $name
+ * @param string $value
  * @return int
  */
 function fctSettingEdit($name, $value)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("UPDATE settings SET set_value = :value WHERE set_name = :name");
@@ -856,14 +952,13 @@ function fctSettingEdit($name, $value)
 
 /***
  * fctSettingList : Return $type Settings in an array
- * @param $type
+ * @param string $type
  * @return mixed
  */
 function fctSettingList($type)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("SELECT set_name, set_value FROM settings WHERE set_type=:type");
@@ -877,15 +972,18 @@ function fctSettingList($type)
     }
     $db = NULL; // Close connection
     return $settingsList;
-
 }
 
-
+/***
+ * fctSettingItem: Return a $type->$name setting
+ * @param string $type
+ * @param string $name
+ * @return mixed
+ */
 function fctSettingItem($type, $name)
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("SELECT set_value FROM settings WHERE set_type=:type AND set_name=:name");
@@ -900,7 +998,6 @@ function fctSettingItem($type, $name)
     }
     $db = NULL; // Close connection
     return $settingsItem['set_value'];
-
 }
 
 //echo "user <br/>";
@@ -928,9 +1025,8 @@ function fctSettingItem($type, $name)
 
 function clearDatabase()
 {
-    global $dsn, $dbUser, $dbPassword;
-
     try {
+        global $dsn, $dbUser, $dbPassword;
         $db = new MyPDO($dsn, "$dbUser", "$dbPassword");
 
         $sql = $db->prepare("DELETE FROM settings");
@@ -939,57 +1035,68 @@ function clearDatabase()
         $sql->execute();
         $sql = $db->prepare("DELETE FROM subject; ALTER TABLE subject AUTO_INCREMENT=1");
         $sql->execute();
-        $sql = $db->prepare("DELETE FROM category; ALTER TABLE category AUTO_INCREMENT=1");
-        $sql->execute();
         $sql = $db->prepare("DELETE FROM membership");
         $sql->execute();
         $sql = $db->prepare("DELETE FROM ugroup; ALTER TABLE ugroup AUTO_INCREMENT=1");
         $sql->execute();
         $sql = $db->prepare("DELETE FROM user; ALTER TABLE user AUTO_INCREMENT=1");
         $sql->execute();
-        $sql = $db->prepare("DELETE FROM status; ALTER TABLE status AUTO_INCREMENT=1");
-        $sql->execute();
 
     } catch (PDOException $e) {
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
-
-
 }
 
-function demoData()
+//TODO Update subject, distribution
+/***
+ * Populate database with demonstration data --> Called at the end of this file !!
+ */
+function fctInsertDemoData()
 {
     clearDatabase();
 
-    fctSettingAdd('SITE_CONFIG', 'SITE_NAME', 'ContactModule');
+    fctSettingAdd('SITE_CONFIG', 'SITE_NAME', 'MessagingModule');
     fctSettingAdd('SITE_CONFIG', 'COPYRIGHT', '&copy; 2018 &mdash; Frank Théodoloz');
 
     fctGroupAdd('ADMIN', 'Administrators');
     fctGroupAdd('USER', 'Users');
 
-    fctUserAdd('Admin', 'Admin', 'admin@localhost', 'admin');
+    fctUserAdd('Admin', '1', 'admin@localhost', 'admin');
     fctMembershipAdd(1, 1);
-    fctUserEnable(1);
+    fctUserChangeActive(1, 1);
 
-    fctUserAdd('Admin2', 'Admin2', 'admin2@localhost', 'admin2');
+    fctUserAdd('Admin2', '2', 'admin2@localhost', 'admin2');
     fctMembershipAdd(1, 2);
-    //fctUserEnable(2);
+    //fctUserChangeActive(2,1);
 
     fctUserAdd('Frank', 'Théodoloz', 'fthe@bluewin.ch', '1234');
     fctMembershipAdd(1, 3);
-    fctUserEnable(3);
+    fctUserChangeActive(3, 1);
 
-    fctUserAdd('User1', 'Firstuser', 'user1@localhost', 'user1');
+    fctUserAdd('User', '1', 'user1@localhost', 'user1');
     fctMembershipAdd(2, 4);
-    fctUserEnable(4);
+    fctUserChangeActive(4, 1);
 
+    fctUserAdd('User', '2', 'user1@localhost', 'user1');
+    fctMembershipAdd(2, 5);
+    fctUserChangeActive(5, 1);
 
-    fctCategoryAdd('DEMO', 'Demo data');
-    fctCategoryAdd('TEST', 'Test data');
+    fctUserAdd('User', '3', 'user1@localhost', 'user1');
+    fctMembershipAdd(2, 6);
+    fctUserChangeActive(6, 1);
+
+    fctUserAdd('User', '4', 'user1@localhost', 'user1');
+    fctMembershipAdd(2, 7);
+    fctUserChangeActive(7, 1);
+
+    fctUserAdd('User', '5', 'user1@localhost', 'user1');
+    fctMembershipAdd(2, 8);
+    //fctUserChangeActive(8, 1);
 
     fctSubjectAdd('Subject1', 1);
-    fctMessageAdd(1, 3, 1, 'Message 1.1',"2018-08-01");
+    fctDistributionAdd();
+    fctMessageAdd(1, 3, 1, 'Message 1.1', "2018-08-01");
     fctMessageAdd(3, 1, 1, 'Message 1.2', "2018-08-02 13:22:12");
 
     fctSubjectAdd('Subject2', 1);
@@ -1001,4 +1108,4 @@ function demoData()
     fctMessageAdd(1, 3, 1, 'Message 1.4', NULL);
 }
 
-//demoData();
+//fctInsertDemoData();

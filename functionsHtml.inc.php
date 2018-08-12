@@ -95,6 +95,7 @@ function fctUrlOpensslCipher($plaintext)
  */
 function fctUrlOpensslDecipher($ciphertext)
 {
+    //TODO when key does not exist or when no corresponding url is found
     $key = $_SESSION['key'];
 
     $c = fctBase64UrlDecode(base64_decode($ciphertext));

@@ -33,12 +33,18 @@ include_once("functionsSql.inc.php");
         if ($_SESSION['user']['admin'] == 1) {
             echo '
             <!-- Dropdown admin menu -->
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown"><i class="fas fa-toolbox "></i> Admin</a>
-                <div class="dropdown-menu">
+            
+            <li class="nav-item bg-danger">
+                <a class="nav-link text-white" href="?id=' . fctUrlOpensslCipher("admin.php") . '"><i class="fas fa-shield-alt"></i>&nbsp;Admin</a>
+            </li>
+            
+            <li class="nav-item dropdown bg-danger">
+                <a class="nav-link dropdown-toggle dropdown-toggle-split text-white" href="#" id="navbardrop" data-toggle="dropdown"></a>
+                <div class="dropdown-menu dropdown-menu-right" >
                     <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("users.php") . '"><i class="fas fa-user-edit text-primary"></i>&nbsp;Users</a>
                     <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("groups.php") . '"><i class="fas fa-users text-primary"></i>&nbsp;Groups</a>
-                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("categories.php") . '"><i class="fas fa-list text-primary"></i>&nbsp;&nbsp;Categories</a>
+                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("messagesa.php") . '"><i class="fas fa-envelope text-primary"></i>&nbsp;Messages</a>
+                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("settings.php") . '"><i class="fas fa-toolbox text-primary"></i>&nbsp;Settings</a>
                 </div>
             </li>
             ';
@@ -54,8 +60,8 @@ include_once("functionsSql.inc.php");
                     
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="?id=' . fctUrlOpensslCipher("logout.php") . '" data-toggle="tooltip" data-placement="left" title="Logout">
+            <li class="nav-item bg-success">
+                <a class="nav-link text-white" href="?id=' . fctUrlOpensslCipher("logout.php") . '" data-toggle="tooltip" data-placement="left" title="Logout">
                     <i class="fas fa-door-open"></i>
                 </a>
             </li>
@@ -70,3 +76,5 @@ include_once("functionsSql.inc.php");
         });
     </script>
 </nav>
+
+
