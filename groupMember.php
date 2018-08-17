@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by PhpStorm.
+ * Subject: Display a selection of users to be added in a Group
  * User: Frank
  * Date: 07/08/2018
  * Time: 21:59
@@ -21,24 +21,45 @@ if ($pageParameter > 0) {
 
 ?>
 
-<div class="container container-fluid mt-4 mb-4">
-    <form name="editForm" action="groupMemberAdd.php" target="_self" method="post">
+<div class="container">
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h2><i class="fas fa-user text-primary" aria-hidden="true"></i> User selection</h2>
+        </div>
+        <div class="col-md-6 text-right">
+            <a class="btn text-muted" href="?id=<?= fctUrlOpensslCipher("groupDetail.php," . $id) ?>">
+                <h2>back to group page <i class="fas fa-angle-double-left " aria-hidden="true"></i></h2>
+            </a>
+        </div>
+    </div>
+
+    <div class="jumbotron pt-2 pb-5 bg-white">
+        <h5 class="collapse text-justify text-muted" id="collapseJumbo">Select one or several users to add to the group.</h5>
+        <hr>
+        <button class="collapseIcon" data-toggle="collapse" data-target="#collapseJumbo" aria-expanded="false" aria-controls="collapseJumbo">
+            <span id="collapseIconOpen" class="text-muted">show details <i class="fa fa-arrow-circle-down" aria-hidden="true"></i></span>
+            <span id="collapseIconClose" class="text-muted">hide details <i class="fa fa-arrow-circle-up" aria-hidden="true"></i></span>
+        </button>
+    </div>
+
+    <form name="editForm" action="groupEdit.php" target="_self" method="post">
+        <input type="hidden" name="action" value="memberAdd">
+        <input type="hidden" name="id" value="<?= $id ?>">
 
         <div class="row">
-            <div class="col"><h2>Add member to <?= $groupDetails[0]['grp_name'] ?></h2></div>
-            <div class="col"></div>
-            <div class="col"><input class="form-control " id="myInput" type="text" placeholder="Search.."/></div>
+            <div class="col-md-8"><h3>Available users for Group <?= $groupDetails[0]['grp_name'] ?></h3></div>
+            <div class="col-md-4"><input class="form-control " id="myInput" type="text" placeholder="Search.."/></div>
         </div>
 
         <table class="table table table-striped" id="myTable">
             <thead>
             <tr>
                 <th>select</th>
-                <th>id</th>
                 <th>name</th>
                 <th>lastname</th>
                 <th>email</th>
-                <th>active</th>
+                <th class="text-center">active</th>
 
             </tr>
             </thead>
@@ -46,8 +67,15 @@ if ($pageParameter > 0) {
 
             <?php
             foreach ($userList as $item) {
-                echo '<tr><td><input type="checkbox" id="select" name="usr[]" value="' . $item["usr_id"] . '"></td><td>' . $item["usr_id"] . '</td><td>' . $item["usr_name"] . '</td><td>' . $item["usr_lastname"] . '</td><td>' . $item["usr_email"] . '</td><td>' . $item["usr_active"] . '</td>
-                    <td><a class="badge badge-primary" href="?id=' . fctUrlOpensslCipher("userDetail.php," . $item["usr_id"]) . '"><i class="fas fa-edit"></i><small> Edit</small></a></td>
+                $item["usr_active"] == 1 ? $icon = "fa fa-check text-success" : $icon = "fa fa-times-circle text-danger";
+
+                echo '<tr>
+                        <td><input type="checkbox" id="select" name="usr[]" value="' . $item["usr_id"] . '"  ></td>
+                        <td>' . $item["usr_name"] . '</td>
+                        <td>' . $item["usr_lastname"] . '</td>
+                        <td>' . $item["usr_email"] . '</td>
+                        <td class="align-middle text-center"><h3><i class="' . $icon . '"></i></h3></td>
+                    
                   </tr>';
             }
             ?>
@@ -56,11 +84,11 @@ if ($pageParameter > 0) {
 
         </table>
 
-        <input type="hidden" name="groupId" value="<?= $id ?>">
-
-        <button type="submit" class="btn btn-success">Submit</button>
-        <a href="?id=<?= fctUrlOpensslCipher("groupDetail.php," . $id) ?>">
-            <button type="button" class="btn btn-danger"><i class="fas fa-times-circle "></i> Cancel</button>
-        </a>
+        <div class="container text-right">
+            <a href="?id=<?= fctUrlOpensslCipher("groupDetail.php," . $id) ?>">
+                <button type="button" class="btn btn-danger"><i class="fas fa-times-circle "></i> Cancel</button>
+            </a>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
     </form>
 </div>

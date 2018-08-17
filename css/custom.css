@@ -1,0 +1,47 @@
+/*
+
+Resource :http://typecode.digital/change-openclose-icon-on-bootstraps-button-collapse-with-only-css/
+*/
+body { padding-bottom: 70px; }
+
+#avatar {
+    height:50px;
+    width:50px;
+    border-radius: 50%;
+}
+.collapseIcon {
+    float: right;
+    width:100%;
+    border: 0;
+    background: none;
+    outline:0;
+}
+
+.collapseIcon:focus, .cancelIcon:focus {
+    outline: 0;
+}
+
+#frmUserEdit .input-group-text{
+    width:90px;
+}
+#frmGroupEdit .input-group-text{
+    width:110px;
+}
+[aria-expanded="false"] #collapseIconClose {
+    display: none;
+}
+
+[aria-expanded="false"] #collapseIconOpen {
+    display: block;
+}
+
+[aria-expanded="true"] #collapseIconClose {
+    display: block;
+}
+
+[aria-expanded="true"] #collapseIconOpen {
+    display: none;
+}
+.jq-toast-wrap{opacity:0.8;}
+.jq-toast-wrap:hover{opacity:1;}
+

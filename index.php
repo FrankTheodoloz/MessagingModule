@@ -11,57 +11,87 @@ include_once("functionsSql.inc.php");
 include_once("functionsHtml.inc.php");
 
 $defaultPage = "main.php";
+global $page;   //requestedPage.php, pageParameter, arrMessages
+global $pageRequested;
 global $pageParameter;
 global $pageStatus;
+$error = false;
 
 session_start();
-fctSessionCheck(); //TODO Change to counter
 
-if (isset($_GET['id'])) {
-    $urlId = fctUrlOpensslDecipher($_GET['id']); //requestedPage.php,pageParameter
-    $page = explode(',', $urlId);
+fctSessionCheck(); //check the session duration and reset the counter
+
+//catch ?id= and check if key exist
+if (isset($_GET['id']) && isset($_SESSION['key'])) {
+
+    try {
+        $urlId = fctUrlOpensslDecipher($_GET['id']);
+        $page = explode(',', $urlId);
+
+    } catch (Exception $e) {
+        $pageStatus[] = array("error", "Error", "Url serialisation Issue");
+    }
     if ($page[0] == 'logout.php') {
-        include($page[0]);
+        file_exists($page[0]) ? include($page[0]) : include($defaultPage);
+        exit();
     }
 }
 
+//html head /!\ any php header() needs to be before
 include_once("header.inc.php");
-
 ?>
 
-<body style="padding-bottom: 35px;">
+<body>
 
 <?php
 
 //case when user not logged in
 if (!isset($_SESSION['user']['id'])) {
+
     include("loginForm.php");
 
 //case logged
 } else {
 
-    include_once("nav.inc.php");
-
+    include_once("nav.inc.php"); //which includes the counter
     //then when a page is requested
     if (isset($_GET['id'])) {
 
         //parsing page parameter if existing
+        isset($page[0]) ? $pageRequested = $page[0] : $pageRequested = "";
         isset($page[1]) ? $pageParameter = $page[1] : $pageParameter = 0;
-        isset($page[2]) ? $pageStatus = $page[2] : $pageStatus = 0;
 
-        //last check if requested page (file) veritably exists and redirection
-        file_exists($page[0]) ? include($page[0]) : include($defaultPage);
+        if (isset($page[2])) {
+
+            try {
+                $pageStatus = unserialize($page[2]);
+            } catch (Exception $e) {
+                $pageStatus[] = array("error", "Error", "Url serialisation Issue");
+
+            }
+        } else {
+            $pageStatus = "";
+        }
+
+
+        //last check if requested page (file) veritably exists and redirection + avoid calling itself
+        file_exists($pageRequested) && $pageRequested != 'index.php' ? include($pageRequested) : include($defaultPage);
 
     } else {
         //case logged user but no page requested
         include($defaultPage);
     }
 }
+if ($pageStatus) {
 
-getDebug(); //bottom alert with $_SESSION details
+    foreach ($pageStatus as $item) {
+        fctShowToast($item[0], $item[1], $item[2]);
+    }
+}
+getDebug(); //toast alert with $_SESSION and $Page details
+
 include_once("footer.inc.php")
 ?>
-
 
 </body>
 </html>

@@ -7,50 +7,31 @@
  */
 
 //Constants
-define("CONST_TIMEOUT_DURATION", 1800); //TODO Site parameter in DB
 define("CONST_DEBUGMODE", 0);
+define("CONST_TIMEOUT_DURATION", 1800); //in seconds
 define("CONST_BCRYPT_COST", 12); //takes significantly more time above 12
 
-//Globals
-global $dbUser;
-global $dbPassword;
-global $dsn;
-
-//SQL DB Connection
-$dbServer = "192.168.1.10";
-$dbName = "MessagingModule";
-$dbUser = "frank";
-$dbPassword = "1234..aa";
-$dsn = "mysql:host=$dbServer;dbname=$dbName;charset=utf8";
-
-//TODO ANALYSE MORE IN DETAILS
-/***
- * Class MyPDO : This reduces number of parameters in the SQL functions
- * Reference: https://stackoverflow.com/a/9328613
+/*** TODO ANALYSE MORE IN DETAILS
+ * Class MyPDO : Creates a constructor for PDO-MySQL connection
+ * Reference: https://stackoverflow.com/a/9328613 and https://stackoverflow.com/a/18684115
  */
-class MyPDO extends PDO
+class myPDO extends PDO
 {
-    public function __construct($dsn, $username = null, $password = null, array $driver_options = null)
+    public function __construct($dsn = null, $username = null, $password = null, array $driver_options = null)
     {
+        $dbServer = "192.168.1.10";
+        $dbName = "MessagingModule";
+        $username = "frank";
+        $password = "1234..aa";
+        $dsn = "mysql:host=$dbServer;dbname=$dbName;charset=utf8";
+
+        $driver_options = array(
+            PDO::MYSQL_ATTR_FOUND_ROWS => TRUE,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        );
+
         parent:: __construct($dsn, $username, $password, $driver_options);
-        $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    }
-}
 
-//TODO implement visible timeout counter with redirection
-/***
- * fctSessionCheck : Session timeout
- */
-function fctSessionCheck()
-{
-    if (isset($_SESSION['LAST_ACTIVITY']) && ($_SERVER['REQUEST_TIME'] - $_SESSION['LAST_ACTIVITY']) > CONST_TIMEOUT_DURATION) {
-        session_unset();
-        session_destroy();
-        session_start();
-        $_SESSION['Error']['Data'] = array("Type" => "warning", "Message" => "Session timeout");
 
     }
-    $_SESSION['LAST_ACTIVITY'] = $_SERVER['REQUEST_TIME'];
 }
-
-?>

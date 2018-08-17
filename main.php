@@ -8,7 +8,7 @@
 
 include_once("functionsHtml.inc.php");
 include_once("nav.inc.php");
-fctShowToast("Success", "Success", "Hello");
+
 ?>
 
 <div class="jumbotron jumbotron-fluid">

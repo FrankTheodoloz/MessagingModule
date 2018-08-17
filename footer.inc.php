@@ -8,7 +8,7 @@
 ?>
 
 <!-- Footer -->
-<footer class="page-footer font-small bg-dark text-muted ">
+<footer class="page-footer fixed-bottom font-small bg-dark text-muted ">
 
     <!-- Copyright -->
     <div class="footer-copyright text-center py-3">

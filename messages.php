@@ -84,13 +84,13 @@ $to;
                 <?php if ($subId > 0) {
                     foreach ($messageList as $item) {
 
-                        $tooltip=' data-toggle="tooltip" data-placement="bottom" title="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"';
+                        $tooltip = ' data-toggle="tooltip" data-placement="bottom" title="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"';
 
                         if ($item['usr_id'] != $_SESSION['user']['id']) {//received message
-                            $item['usr_avatar'] ? $image = '<img src="' . $item['usr_avatar'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"'.$tooltip.'>' : $image = '<img avatar="' . $item['usr_name'] . " " . $item['usr_lastname'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"'.$tooltip.'>';
+                            $item['usr_avatar'] ? $image = '<img src="' . $item['usr_avatar'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"' . $tooltip . '>' : $image = '<img avatar="' . $item['usr_name'] . " " . $item['usr_lastname'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"' . $tooltip . '>';
 
                             echo '<div class="message_in">
-                    <div class="message_icon">'.$image.'</div>
+                    <div class="message_icon">' . $image . '</div>
                     <div class="message_in_content">
                         <div class="message_body">
                             <p>' . $item["msg_content"] . '</p>
@@ -116,13 +116,13 @@ $to;
 
             </div>
         </div>
-        <?php
+        <?php //TODO OBSOLETE delete conversation
         if ($subId > 0) {
 
             echo '<form name="MessageForm" action="messageAdd.php" target="_self" method="post">
             <input type="hidden" name="subjectId" value="' . $subId . '"/>
             <input type="hidden" name="to" value="' . $to . '"/>
-            <div class="delete_msg"><a href="#" data-toggle="modal" data-target="#confirmDeleteModal">delete conversation...</a></div>
+            <div class="delete_msg"><a href="#" data-toggle="modal" data-target="#confirmDeleteModal">delete conversation...</a></div> 
             
             <div class="message_new">
                    <textarea name="content" id="content" class="form-control" placeholder="Reply..." required></textarea>
@@ -163,8 +163,6 @@ $to;
                                     ?>
                                 </select>
 
-                                <!-- todo : categoryId -->
-                                <input type="hidden" name="categoryId" value="1"/>
                                 <input type="text" name="subject" class="form-control mb-2" placeholder="Enter a subject..." required>
                                 <textarea name="content" class="form-control" style="min-height: 150px;" placeholder="Message..." required></textarea>
                             </div>
@@ -180,14 +178,15 @@ $to;
         </form>
     </div>
 
-    <!-- Modal form Delete confirm ----------------------------------------------------------- -->
+    <!-- Modal form Delete confirm -->
+    <!-- <a href="#" data-toggle="modal" data-target="#confirmDeleteModal"> -->
     <div class="container">
         <form name="ConfirmDeleteForm" action="subjectDelete.php" target="_self" method="post">
             <div class="modal" id="confirmDeleteModal">
                 <div class="modal-dialog modal-sm  modal-dialog-centered">
                     <div class="modal-content">
                         <!-- Modal Header -->
-                        <div class="modal-header bg-danger text-light">
+            00            <div class="modal-header bg-danger text-light">
                             <h3><i class="far fa-times-circle" aria-hidden="true"></i></h3>
                             <h4 class="modal-title"> Delete confirmation</h4>
                         </div>

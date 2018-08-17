@@ -7,103 +7,147 @@
  */
 global $pageParameter;
 global $pageStatus;
-$alert = 0;
+
+$restrictedGroup = false;
+$newGroup = false;
+
 if ($pageParameter > 0) {
     //an Id was given
     $id = $pageParameter;
     $groupDetails = fctGroupList($id);
     $groupMembers = fctUsersFromGroup($id);
 
+    //ADMIN and USER groups cannot have their names changed
+    strtoupper($groupDetails[0]["grp_name"]) == 'ADMIN' || strtoupper($groupDetails[0]["grp_name"]) == 'USER' ? $restrictedGroup = true : $restrictedGroup = false;
+
 } else if ($pageParameter == 0) {
     //a new Id creation
+    $newGroup = true;
 }
 
 ?>
 
-<div class="container container-fluid mt-4 mb-4">
+<div class="container ">
 
-    <div class="row mb-4">
-        <div class="col"><h2><strong><?= $pageParameter > 0 ? $groupDetails[0]["grp_name"] : "New " ?></strong> Group details</h2></div>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h2><i class="fas fa-users text-primary" aria-hidden="true"></i> Group details</h2>
+        </div>
+        <div class="col-md-6 text-right">
+            <a class="btn text-muted" href="?id=<?= fctUrlOpensslCipher("groups.php") ?>">
+                <h2>back to Groups page <i class="fas fa-angle-double-left " aria-hidden="true"></i></h2>
+            </a>
+        </div>
     </div>
 
-    <form name="editForm" action="<?= $pageParameter > 0 ? "groupEdit.php" : "groupAdd.php" ?>" target="_self" method="post">
+    <div class="jumbotron pt-2 pb-5 bg-white">
+        <h5 class="collapse text-justify text-muted" id="collapseJumbo">Group details and their user members can be changed here.<br/>
+            Note that the ADMIN and SUPER users cannot be removed from the ADMIN and USER groups.</h5>
+        <hr/>
+        <button class="collapseIcon" data-toggle="collapse" data-target="#collapseJumbo" aria-expanded="false" aria-controls="collapseJumbo">
+            <span id="collapseIconOpen" class="btn text-muted">show details <i class="fa fa-arrow-circle-down" aria-hidden="true"></i></span>
+            <span id="collapseIconClose" class="btn text-muted">hide details <i class="fa fa-arrow-circle-up" aria-hidden="true"></i></span>
+        </button>
+    </div>
 
-        <input type="hidden" name="id" value="<?= $pageParameter > 0 ? $groupDetails[0]["grp_id"] : "" ?>">
+    <div class="card">
+        <div class="card-header"><h4><strong><?= $newGroup ? "New " : $groupDetails[0]["grp_name"] ?></strong> Group details</h4></div>
 
-        <div class="form-row mb-2">
-            <div class="col col-2">
-                Group name
-            </div>
-            <div class="col col-4">
-                <input type="name" class="form-control" name="name" size="32" id="name" value="<?= $pageParameter > 0 ? $groupDetails[0]["grp_name"] : "" ?>" required>
-            </div>
-        </div>
-        <div class="form-row mb-2">
-            <div class="col col-2">
-                Description
-            </div>
-            <div class="col col-4">
-                <input type="description" class="form-control" name="description" size="64" id="description" value="<?= $pageParameter > 0 ? $groupDetails[0]["grp_description"] : "" ?>" required>
-            </div>
-        </div>
+        <form name="frmGroupEdit" id="frmGroupEdit" action="groupEdit.php" target="_self" method="post">
+            <input type="hidden" name="id" value="<?= $newGroup ? 0 : $groupDetails[0]["grp_id"] ?>">
+            <input type="hidden" name="action" value="<?= $newGroup ? "new" : "update" ?>">
 
-        <div class="form-row mb-2">
-            <div class="col">
-                <button type="submit" class="btn btn-success">Submit</button>
-                <a href="?id=<?= fctUrlOpensslCipher("groups.php") ?>">
-                    <button type="button" class="btn btn-danger"><i class="fas fa-times-circle "></i> Cancel</button>
+            <div class="card-body">
+
+                <div class="form-row">
+                    <div class="col">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend"><span class="input-group-text">Name</span></div>
+                            <input type="name" class="form-control" name="name" maxlength="32" value="<?= $newGroup ? "" : $groupDetails[0]["grp_name"] ?>" <?= $restrictedGroup ? "disabled" : "" ?> required>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend"><span class="input-group-text">Description</span></div>
+                            <input type="name" class="form-control" name="description" maxlength="64" value="<?= $newGroup ? "" : $groupDetails[0]["grp_description"] ?>" <?= $restrictedGroup ? "disabled" : "" ?> required>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card-footer text-right">
+                <a class="btn btn-danger" href="?id=<?= fctUrlOpensslCipher("groups.php") ?>"><i class="fas fa-times-circle "></i> Cancel</a>
+                <button type="submit" class="btn btn-primary" <?= $restrictedGroup ? 'disabled' : '' ?>>Submit</button>
+            </div>
+
+        </form>
+    </div>
+
+    <?php if (!$newGroup) { ?>
+        <form name="frmMemberEdit" action="groupEdit.php" target="_self" method="post">
+            <input type="hidden" name="action" value="memberRemove">
+            <input type="hidden" name="id" value="<?= $groupDetails[0]["grp_id"] ?>">
+
+            <div class="row mt-4">
+                <div class="col-md-8"><h3>List of members</h3></div>
+                <div class="col-md-4"><input class="form-control " id="myInput" type="text" placeholder="Search.."/></div>
+            </div>
+
+            <table class="table table-sm table-striped" id="myTable">
+                <thead>
+                <tr>
+                    <th>select</th>
+                    <th>name</th>
+                    <th>lastname</th>
+                    <th>email</th>
+                    <th class="text-center">active</th>
+
+                </tr>
+                </thead>
+                <tbody>
+
+                <?php foreach ($groupMembers as $item) {
+
+                    //test if editing ADMIN or SUPER users -> cannot be removed from ADMIN and USER groups
+                    strtoupper($item["usr_name"]) == 'ADMIN' || strtoupper($item["usr_name"]) == 'SUPER' ? $restrictedUser = true : $restrictedUser = false;
+                    $item["usr_active"] == 1 ? $icon = "fa fa-check text-success" : $icon = "fa fa-times-circle text-danger";
+                    ?>
+
+                    <tr>
+                        <td><input type="checkbox" name="usr[]" value="<?= $item["usr_id"] ?>" <?= ($restrictedGroup && $restrictedUser) ? 'Disabled' : '' ?>>
+                        </td>
+                        <td><?= $item["usr_name"] ?></td>
+                        <td><?= $item["usr_lastname"] ?></td>
+                        <td><?= $item["usr_email"] ?></td>
+                        <td class="align-middle text-center"><h3><i class="<?= $icon ?>"></i></h3></td>
+                    </tr>
+                <?php } ?>
+
+                </tbody>
+
+            </table>
+
+            <div class="container text-right">
+                <button type="submit" class="btn btn-danger"><i class="fas fa-minus "></i> Remove selected users</button>
+
+                <a href="?id=<?= fctUrlOpensslCipher("groupMember.php," . $id) ?>">
+                    <button type="button" class="btn btn-primary"><i class="fas fa-plus"></i> Add Member</button>
                 </a>
             </div>
-        </div>
-    </form>
 
-    <form name="memberForm" action="groupMemberRemove.php" target="_self" method="post">
+        </form>
+    <?php } ?>
 
-        <input type="hidden" name="groupId" value="<?= $pageParameter > 0 ? $groupDetails[0]["grp_id"] : "" ?>">
-
-        <div class="row mt-4">
-            <div class="col"><h3>Members</h3></div>
-            <div class="col"></div>
-            <div class="col"><input class="form-control " id="myInput" type="text" placeholder="Search.."/></div>
-        </div>
-
-        <table class="table table-sm table-striped" id="myTable">
-            <thead>
-            <tr>
-                <th>select</th>
-                <th>id</th>
-                <th>name</th>
-                <th>lastname</th>
-                <th>email</th>
-                <th colspan="2">active</th>
-
-            </tr>
-            </thead>
-            <tbody>
-
-            <?php
-            if ($pageParameter > 0) {
-                foreach ($groupMembers as $item) {
-                    echo '<tr>
-                <td><input type="checkbox" id="select" name="usr[]" value="' . $item["usr_id"] . '"></td>
-                <td>' . $item["usr_id"] . '</td><td>' . $item["usr_name"] . '</td><td>' . $item["usr_lastname"] . '</td><td>' . $item["usr_email"] . '</td><td>' . $item["usr_active"] . '</td>
-            </tr>';
-                }
-            }
-            ?>
-
-            </tbody>
-
-        </table>
-        <?php
-        if ($pageParameter > 0) {
-            echo '<a href="?id=' . fctUrlOpensslCipher("groupMember.php," . $id) . '">
-            <button type="button" class="btn btn-primary"><i class="fas fa-plus"></i> Add Member</button>
-        </a>
-        <button type="submit" class="btn btn-danger"><i class="fas fa-minus "></i> Remove selected users</button>
-        ';
-        } ?>
-    </form>
 </div>
 
 <?= fctFilterJS(); ?>
+<script>
+    // data-toggle="tooltip" data-placement="right" title="Close"
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>

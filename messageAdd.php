@@ -14,7 +14,7 @@ include_once("functionsHtml.inc.php");
 !isset($_POST['to']) ? $to = NULL : $to = $_POST['to'];
 !isset($_POST['content']) ? $content = NULL : $content = $_POST['content'];
 
-fctMessageAdd($_SESSION['user']['id'], $to, $subjectId, $content,NULL);
+fctMessageAdd($to, $_SESSION['user']['id'], $subjectId, $content, NULL);
 
 $page = fctUrlOpensslCipher("messages.php," . $subId . ", message sent");
 header("location:.?id=" . $page);

@@ -10,7 +10,7 @@ include_once("functionsHtml.inc.php");
 include_once("functionsSql.inc.php");
 ?>
 
-<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark">
     <!-- Brand -->
     <a class="navbar-brand" href="#"><strong><?= fctSettingItem('SITE_CONFIG', 'SITE_NAME') ?></strong></a>
     <!-- Hamburger button for collapsibleItems-->
@@ -21,6 +21,7 @@ include_once("functionsSql.inc.php");
     <?php if (isset($_SESSION['user']['id'])) {
         echo '
     <div class="navbar-collapse collapse" id="collapsibleItems">
+        
         <!-- Left navbar links -->
         <ul class="navbar-nav">
             <li class="nav-item active">
@@ -32,10 +33,10 @@ include_once("functionsSql.inc.php");
             ';
         if ($_SESSION['user']['admin'] == 1) {
             echo '
-            <!-- Dropdown admin menu -->
             
+            <!-- Dropdown admin menu -->
             <li class="nav-item bg-danger">
-                <a class="nav-link text-white" href="?id=' . fctUrlOpensslCipher("admin.php") . '"><i class="fas fa-shield-alt"></i>&nbsp;Admin</a>
+                <a class="nav-link text-white" href="?id=' . fctUrlOpensslCipher("admin.php") . '"><i class="fas fa-shield-alt"></i> Admin</a>
             </li>
             
             <li class="nav-item dropdown bg-danger">
@@ -43,25 +44,27 @@ include_once("functionsSql.inc.php");
                 <div class="dropdown-menu dropdown-menu-right" >
                     <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("users.php") . '"><i class="fas fa-user-edit text-primary"></i>&nbsp;Users</a>
                     <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("groups.php") . '"><i class="fas fa-users text-primary"></i>&nbsp;Groups</a>
-                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("messagesa.php") . '"><i class="fas fa-envelope text-primary"></i>&nbsp;Messages</a>
-                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("settings.php") . '"><i class="fas fa-toolbox text-primary"></i>&nbsp;Settings</a>
+                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("database.php") . '"><i class="fas fa-database text-primary"></i>&nbsp; Database</a>
+                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("settings.php") . '"><i class="fas fa-toolbox text-primary"></i>&nbsp; Settings</a>
                 </div>
             </li>
             ';
         }
         echo '
         </ul>
+        
         <!-- Right navbar links -->
         <ul class="nav navbar-nav ml-auto">
+            <div class="navbar-text text-muted" id="timeoutCounter">Session timeout 00:00</div>
             <li class="nav-item">
-                <a class="nav-link" aria-haspopup="false" href="?id=' . fctUrlOpensslCipher("profile.php") . '" data-toggle="tooltip" data-placement="left" title="Profile">
+            
+                <a class="nav-link" aria-haspopup="false" href="?id=' . fctUrlOpensslCipher("profile.php") . '" data-toggle="tooltip" data-placement="bottom" title="Profile">
                 <i class="fas fa-user"></i>
                     ' . $_SESSION['user']['name'] . '
-                    
                 </a>
             </li>
             <li class="nav-item bg-success">
-                <a class="nav-link text-white" href="?id=' . fctUrlOpensslCipher("logout.php") . '" data-toggle="tooltip" data-placement="left" title="Logout">
+                <a class="nav-link text-white" href="?id=' . fctUrlOpensslCipher("logout.php") . '" data-toggle="tooltip" data-placement="bottom" title="Logout">
                     <i class="fas fa-door-open"></i>
                 </a>
             </li>
@@ -70,11 +73,15 @@ include_once("functionsSql.inc.php");
     ';
     } ?>
 
+    <script src="js/counter.js"></script>
+
     <script>
         $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip();
         });
+
+        $(document).ready(function () {
+            timeoutCounter(<?=CONST_TIMEOUT_DURATION?>);
+        });
     </script>
 </nav>
-
-

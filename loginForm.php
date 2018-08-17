@@ -25,10 +25,11 @@ if (isset($_POST['email']) && isset($_POST['pwd']) && !empty($_POST['email']) &&
 
 <div class="container">
 
-    <form name="loginForm" action="index.php" target="_self" method="post">
-        <div class="modal" id="myModal">
-            <div class="modal-dialog modal-sm  modal-dialog-centered">
-                <div class="modal-content">
+    <div class="modal" id="myModal">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content">
+                <form name="loginForm" action="index.php" target="_self" method="post">
+
                     <!-- Modal Header -->
                     <div class="modal-header bg-primary text-light">
                         <h4 class="modal-title"><strong><?= fctSettingItem('SITE_CONFIG', 'SITE_NAME') ?></strong> Login</h4>
@@ -37,13 +38,13 @@ if (isset($_POST['email']) && isset($_POST['pwd']) && !empty($_POST['email']) &&
                     <?= fctLoginMessage(); ?>
                     <!-- Modal body -->
                     <div class="modal-body">
-                        <div class="card mt-4" align="center" style="margin:auto; width:50%">
+                        <div class="card mt-2" align="center" style="margin:auto; width:50%">
                             <div class="card-body">
                                 <i class="far fa-user fa-5x text-secondary"></i>
                             </div>
                         </div>
                         <div class="form-group mt-4">
-                            <input type="email" class="form-control mb-4" name="email" id="email" placeholder="Email" value="<?= $email ?>" required>
+                            <input type="email" class="form-control mb-2" name="email" id="email" placeholder="Email" value="<?= $email ?>" required>
 
                             <input type="password" class="form-control" name="pwd" id="pwd" placeholder="Password" required>
                         </div>
@@ -52,13 +53,13 @@ if (isset($_POST['email']) && isset($_POST['pwd']) && !empty($_POST['email']) &&
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-success">Submit</button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
-    </form>
+    </div>
 </div>
 
-<!-- JS for modal onload
+<!-- JS for modal display once page is loaded + autofocus
 Refs
  1  https://stackoverflow.com/a/10234834
  2  https://stackoverflow.com/a/22208662
@@ -70,5 +71,6 @@ Refs
             keyboard: false,
             show: true
         });
+        $('#email').trigger('focus');
     });
 </script>

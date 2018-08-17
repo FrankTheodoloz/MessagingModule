@@ -9,7 +9,22 @@
 include_once("config/config.inc.php");
 
 /***
- * getBadge: Return the badge of the user
+ * fctSessionCheck : Session timeout
+ * Function for each page refresh
+ */
+function fctSessionCheck()
+{
+    if (isset($_SESSION['LAST_ACTIVITY']) && ($_SERVER['REQUEST_TIME'] - $_SESSION['LAST_ACTIVITY']) > CONST_TIMEOUT_DURATION) {
+        session_unset();
+        session_destroy();
+        session_start();
+        $_SESSION['Error']['Data'] = array("Type" => "warning", "Message" => "Session timeout");
+    }
+    $_SESSION['LAST_ACTIVITY'] = $_SERVER['REQUEST_TIME'];
+}
+
+/***
+ * getBadge: Return the badge of the user/admin
  * Reference https://stackoverflow.com/a/49089293
  * @return string
  */
@@ -28,21 +43,16 @@ function getBadge()
  */
 function getDebug()
 {
+    global $page;
     if (CONST_DEBUGMODE == 1) {
-        echo '
-<div class="alert alert-warning alert-dismissible fixed-bottom" style="opacity: 0.5">
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-    <i class="fas fa-info-circle"></i>
-    <small>
-        <strong>Debug</strong><br/>
-        <pre>';
-        echo "Last activity: " . date('H:i:s', $_SESSION['LAST_ACTIVITY']) . "\n";
-        !isset($_SESSION['user']) ?: print_r($_SESSION['user']);
-
-        echo '        </pre>
-    </small>
-</div>
-';
+        $text = "Last activity: " . date('H:i:s', $_SESSION['LAST_ACTIVITY']) . "<br/>";
+        if (isset($_SESSION['user'])) {
+            $text .= "User: " . implode("<br/>&nbsp;", $_SESSION['user']) . "<br/>";
+        }
+        if (isset($page)) {
+            $text .= "Page: " . implode("<br/>&nbsp;", $page);
+        }
+        fctShowToast("info", "\$_SESSION details", $text, "false");
     }
 }
 
@@ -109,7 +119,7 @@ function fctUrlOpensslDecipher($ciphertext)
     if (hash_equals($hmac, $calcmac))//PHP 5.6+ timing attack safe comparison
     {
         return $original_plaintext;
-    }
+    }else {return false;}
 }
 
 /***
@@ -167,14 +177,14 @@ function fctShowToast($type, $title, $content, $duration = 5000)
     echo '<script>
     $.toast({
         
-        heading: "'.$title.'", // Optional heading to be shown on the toast
-        text: "'.$content.'", // Text that is to be shown in the toast
-        icon: "'.$type.'", // Warning, success, error, information
+        heading: "' . $title . '", // Optional heading to be shown on the toast
+        text: "' . $content . '", // Text that is to be shown in the toast
+        icon: "' . $type . '", // warning, success, error, info
         // bgColor: "#444444",  // Background color of the toast [NO ICON]
         // textColor: "#eeeeee",  // Text color of the toast [NO ICON]
         showHideTransition: "fade", // fade, slide or plain
         allowToastClose: true, // Boolean value true or false
-        hideAfter: '.$duration.', // false to make it sticky or number representing the miliseconds as time after which toast needs to be hidden
+        hideAfter: ' . $duration . ', // false to make it sticky or number representing the miliseconds as time after which toast needs to be hidden
         stack: 5, // false if there should be only one toast at a time or a number representing the maximum number of toasts to be shown at a time
         position: "bottom-left", // bottom-center/right/left or top-center/right/left or mid-center or an object representing the left, right, top, bottom values
 
