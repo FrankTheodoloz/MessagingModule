@@ -44,8 +44,8 @@ include_once("functionsSql.inc.php");
                 <div class="dropdown-menu dropdown-menu-right" >
                     <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("users.php") . '"><i class="fas fa-user-edit text-primary"></i>&nbsp;Users</a>
                     <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("groups.php") . '"><i class="fas fa-users text-primary"></i>&nbsp;Groups</a>
-                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("database.php") . '"><i class="fas fa-database text-primary"></i>&nbsp; Database</a>
-                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("settings.php") . '"><i class="fas fa-toolbox text-primary"></i>&nbsp; Settings</a>
+                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("settings.php") . '"><i class="fas fa-wrench text-primary"></i>&nbsp; Settings</a>
+                    <a class="dropdown-item" href="?id=' . fctUrlOpensslCipher("maintenance.php") . '"><i class="fas fa-toolbox text-primary"></i>&nbsp; Maintenance</a>
                 </div>
             </li>
             ';

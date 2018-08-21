@@ -7,7 +7,6 @@
  */
 
 include_once("config/config.inc.php");
-
 /* BCrypt --------------------------------------------------------------------------------- */
 /***
  * fctBcryptHash : Return BCrypt hash of password
@@ -52,11 +51,12 @@ function fctUserAdd($name, $lastname, $email, $password)
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Email <em>{$email}</em> already registered."; //TODO
+            $error = -2;
+
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
-        return false;
+        return $error;
     }
 }
 
@@ -69,8 +69,6 @@ function fctUserAdd($name, $lastname, $email, $password)
  */
 function fctUserEdit($id, $name, $lastname)
 {
-
-
     try {
         $db = new MyPDO();
 
@@ -158,7 +156,6 @@ function fctUserIfAdmin($id)
         $db = new myPDO();
 
         $sql = $db->prepare("SELECT COUNT(*) FROM user u JOIN membership m ON m.mem_usrid = u.usr_id JOIN ugroup g on g.grp_id = m.mem_grpid WHERE u.usr_id=:id AND g.grp_name= 'ADMIN'");
-        $sql->bindParam(':pwdhash', $pwdhash, PDO::PARAM_INT);
         $sql->bindParam(':id', $id, PDO::PARAM_INT);
         $sql->execute();
 
@@ -197,7 +194,8 @@ function fctUserChangeActive($id, $active)
 }
 
 /***
- * fctUserList : Return user-s in an array
+ * fctUserList : Return user-s details in an array
+ * Usage:
  * @param int $id (Default 0 = all users)
  * @return mixed
  */
@@ -225,6 +223,7 @@ function fctUserList($id = 0)
 
 /***
  * fctUserLogin : Return True if login is found AND password matches
+ * Usage: Login page on the frontpage...
  * @param string $email
  * @param string $password
  * @return bool
@@ -278,58 +277,36 @@ function fctUserLogin($email, $password)
 }
 
 /***
- * fctUsersFromGroup: Return a list of users from a group
- * @param int $id
- * @return array
+ * fctUserAvatarChange: Update the user avatar and return rowCount()
+ * @param $id
+ * @param $avatar
+ * @return int
  */
-function fctUsersFromGroup($id)
+function fctUserAvatarChange($id, $avatar)
 {
     try {
+        $avatar == '' ? $avatar = null : '';
         $db = new myPDO();
 
-        $sql = $db->prepare("SELECT * FROM user u JOIN membership m ON m.mem_usrid = u.usr_id JOIN ugroup g ON g.grp_id = m.mem_grpid WHERE grp_id=:id");
+        $sql = $db->prepare("UPDATE user SET usr_avatar = :avatar WHERE usr_id = :id");
         $sql->bindParam(':id', $id, PDO::PARAM_INT);
-
+        $sql->bindParam(':avatar', $avatar, PDO::PARAM_STR);
         $sql->execute();
-        $groupMembersList = $sql->fetchall(PDO::FETCH_ASSOC);
+
+        $result = $sql->rowCount();
 
     } catch (PDOException $e) {
+
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
-    return $groupMembersList;
+    return $result;
 }
 
-//TODO OBSOLETE
-/***
- * fctUsersNotGroup: Return a list of users NOT in a group
- * @param int $id
- * @return array
- */
-function fctUsersNotGroup($id)
-{
-    try {
-        $db = new myPDO();
-
-        $sql = $db->prepare("SELECT usr_id, usr_name, usr_lastname, usr_email, usr_active
-                                        FROM user
-                                        WHERE usr_id NOT IN(SELECT mem_usrid FROM membership WHERE mem_grpid = :id)
-                                        ORDER BY usr_lastname;");
-        $sql->bindParam(':id', $id, PDO::PARAM_INT);
-
-        $sql->execute();
-        $groupMembersList = $sql->fetchall(PDO::FETCH_ASSOC);
-
-    } catch (PDOException $e) {
-        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
-    }
-    $db = NULL; // Close connection
-    return $groupMembersList;
-}
-
-/* Usergroup ------------------------------------------------------------------------------ */
+/* Groups --------------------------------------------------------------------------------- */
 /***
  * fctGroupAdd : Add a group and return lastInsertId()
+ * Usage: Administration-Groups
  * @param string $name
  * @param string $description
  * @return bool|string
@@ -361,6 +338,7 @@ function fctGroupAdd($name, $description)
 
 /***
  * fctGroupAdd : Edit a group and return rowCount()
+ * Usage: Administration-Groups
  * @param string $name
  * @param string $description
  * @return bool|string$
@@ -380,11 +358,37 @@ function fctGroupEdit($id, $name, $description)
 
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry."; //TODO
+            $error = -2;
+
         } else {
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
-        return false;
+        return $error;
+    }
+    $db = NULL; // Close connection
+    return $result;
+}
+
+/***
+ * fctGroupDelete: Remove a Group and return rowCount()
+ * Usage: Administration-Groups
+ * @param $id
+ * @return int
+ */
+function fctGroupDelete($id)
+{
+    try {
+        $db = new myPDO();
+
+        $sql = $db->prepare("DELETE FROM ugroup WHERE grp_id = :id");
+        $sql->bindParam(':id', $id, PDO::PARAM_INT);
+        $sql->execute();
+
+        $result = $sql->rowCount();
+
+    } catch (PDOException $e) {
+
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
     return $result;
@@ -392,6 +396,7 @@ function fctGroupEdit($id, $name, $description)
 
 /***
  * fctGroupList: Return group-s in an array
+ * Usage: Administration-Groups
  * @param int $id (default 0 = All)
  * @return array
  */
@@ -417,9 +422,9 @@ function fctGroupList($id = 0)
     return $groupList;
 }
 
-/* Membership ----------------------------------------------------------------------------- */
 /***
  * fctMembershipAdd : Add a user->group relation and return rowCount()
+ * Usage: Administration-Groups
  * @param int $groupId
  * @param int $userId
  * @return bool|string
@@ -450,6 +455,7 @@ function fctMembershipAdd($groupId, $userId)
 
 /***
  * fctMembershipRemove : Remove a user->group relation and return rowCount()
+ * Usage: Administration-Groups
  * @param $groupId
  * @param $userId
  * @return int|array
@@ -473,9 +479,85 @@ function fctMembershipRemove($groupId, $userId)
     return $result;
 }
 
+/***
+ * fctMembershipRemove : Remove all user->group relation and return rowCount()
+ * Usage: Administration-Groups
+ * @param $groupId
+ * @return int|array
+ */
+function fctMembershipGroupDelete($groupId)
+{
+    try {
+        $db = new myPDO();
+
+        $sql = $db->prepare("DELETE FROM membership WHERE mem_grpid = :groupId");
+        $sql->bindParam(':groupId', $groupId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $result = $sql->rowCount();
+
+    } catch (PDOException $e) {
+        return array(-1 => $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $result;
+}
+
+/***
+ * fctUsersFromGroup: Return a list of users from a group
+ * Usage: Administration-Groups
+ * @param int $id
+ * @return array
+ */
+function fctUsersFromGroup($id)
+{
+    try {
+        $db = new myPDO();
+
+        $sql = $db->prepare("SELECT * FROM user u JOIN membership m ON m.mem_usrid = u.usr_id JOIN ugroup g ON g.grp_id = m.mem_grpid WHERE grp_id=:id");
+        $sql->bindParam(':id', $id, PDO::PARAM_INT);
+
+        $sql->execute();
+        $groupMembersList = $sql->fetchall(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $groupMembersList;
+}
+
+/***
+ * fctUsersNotGroup: Return a list of users NOT in a group
+ * Usage: Administration-Groups (add user to group)
+ * @param int $id
+ * @return array
+ */
+function fctUsersNotGroup($id)
+{
+    try {
+        $db = new myPDO();
+
+        $sql = $db->prepare("SELECT usr_id, usr_name, usr_lastname, usr_email, usr_active
+                                        FROM user
+                                        WHERE usr_id NOT IN(SELECT mem_usrid FROM membership WHERE mem_grpid = :id)
+                                        ORDER BY usr_lastname;");
+        $sql->bindParam(':id', $id, PDO::PARAM_INT);
+
+        $sql->execute();
+        $groupMembersList = $sql->fetchall(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $groupMembersList;
+}
+
 /* Subject -------------------------------------------------------------------------------- */
 /***
  * fctSubjectNew: Add a subject, subject->user relation-s and first message return subject lastInsertId()
+ * Usage: In the chatbox --> trigger after insert on message
  * Resource: https://stackoverflow.com/questions/24408434/pdo-transaction-syntax-with-try-catch
  *           http://php.net/manual/en/pdo.begintransaction.php
  * @param int $from
@@ -505,7 +587,6 @@ function fctSubjectNew($from, $to, $subject, $content, $date = NULL)
                 $sql->bindParam(':subId', $lastSubjectId, PDO::PARAM_INT);
                 $sql->bindParam(':usrId', $item, PDO::PARAM_INT);
                 $sql->execute();
-
             }
 
             $sql = $db->prepare("INSERT INTO message (msg_from, msg_subid, msg_content, msg_date) VALUES (:from, :subId, :content, :date)");
@@ -535,49 +616,69 @@ function fctSubjectNew($from, $to, $subject, $content, $date = NULL)
 }
 
 /***
- * fctSubjectList: Return a user subjects list in an array
- * @param int $id
+ * fctDistributionUsersIn: Return a list of users in subject.
+ * Usage: List of avatar and Administration-Subjects (remove)
+ * @param $id
  * @return array
  */
-function fctSubjectList($id)
+function fctDistributionUsersIn($id)
 {
     try {
         $db = new myPDO();
 
-        $sql = $db->prepare("SELECT DISTINCT (s.sub_id), s.sub_name, s.sub_lastdate, u.usr_id, u.usr_name, u.usr_lastname, usr_avatar
-                                        FROM notification n
-                                           JOIN message m ON m.msg_id = n.not_msgid
-                                           JOIN subject s ON s.sub_id = m.msg_subid
-                                           JOIN user u ON u.usr_id = s.sub_lastusrid
-                                        WHERE n.not_usrid = :userId
-                                        ORDER BY s.sub_lastdate DESC");
-        $sql->bindParam(':userId', $id, PDO::PARAM_INT);
-        $sql->execute();
+        $sql = $db->prepare("SELECT * FROM distribution d JOIN user u ON u.usr_id = d.dis_usrid WHERE d.dis_subid=:id");
+        $sql->bindParam(':id', $id, PDO::PARAM_INT);
 
-        $settingsList = $sql->fetchall(PDO::FETCH_BOTH);
+        $sql->execute();
+        $userList = $sql->fetchall(PDO::FETCH_ASSOC);
 
     } catch (PDOException $e) {
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
-    return $settingsList;
+    return $userList;
 }
 
-//TODO:OBSOLETE
 /***
- * fctSubjectDelete: Delete a subject
- * @param $subId
+ * fctDistributionUsersNotIn: Return a list of users not in subject.
+ * Usage: Add a user in the chatbox
+ * @param $id
+ * @return array
+ */
+function fctDistributionUsersNotIn($id)
+{
+    try {
+        $db = new myPDO();
+        //TODO WTF SELECT u.* FROM user u LEFT //JOIN distribution d ON d.dis_usrid=u.usr_id WHERE   d.dis_subid= 4 AND d.dis_usrid is null;
+        $sql = $db->prepare("select * from user u where u.usr_id not in (select d.dis_usrid from distribution d where d.dis_subid =:id)");
+        $sql->bindParam(':id', $id, PDO::PARAM_INT);
+
+        $sql->execute();
+        $userList = $sql->fetchall(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $userList;
+}
+
+/***
+ * fctSubjectEdit: Update a Subject name and return rowCount()
+ * Usage: Administration-Subjects
+ * @param $id
+ * @param $name
  * @return int
  */
-function fctSubjectDelete($subId)
+function fctSubjectEdit($id, $name)
 {
-    fctMessageSubDelete($subId);
-
     try {
         $db = new myPDO();
 
-        $sql = $db->prepare("DELETE FROM subject WHERE sub_id =:subId");
-        $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
+        $query = "UPDATE subject SET sub_name=:subName WHERE sub_id=:subId";
+        $sql = $db->prepare($query);
+        $sql->bindParam(':subId', $id, PDO::PARAM_INT);
+        $sql->bindParam(':subName', $name, PDO::PARAM_STR);
         $sql->execute();
 
         $result = $sql->rowCount();
@@ -589,19 +690,81 @@ function fctSubjectDelete($subId)
     return $result;
 }
 
+/***
+ * fctSubjectList: Return (User's) Subject list in an array
+ * Usage: Subject list in chatbox and Administration-Subjects
+ * @param int $id
+ * @return array
+ */
+function fctUserSubjectList($id)
+{
+    try {
+        $db = new myPDO();
+
+        $query = "SELECT s.sub_id, s.sub_name, s.sub_lastdate, u.usr_id, u.usr_name, u.usr_lastname, u.usr_avatar, count(n.not_read) as count
+                  FROM subject s
+                    JOIN message m ON m.msg_subid = s.sub_id
+                    JOIN distribution d ON (d.dis_subid = s.sub_id)
+                    JOIN user u ON u.usr_id = s.sub_lastusrid
+                    LEFT JOIN notification n ON (n.not_msgid = m.msg_id AND (n.not_usrid = :usrId OR n.not_usrid is NULL )) ";
+        $id < 0 ?: $query .= "WHERE d.dis_usrid = :usrId ";
+        $query .= "GROUP BY s.sub_id
+                  ORDER BY s.sub_lastdate DESC";
+
+        $sql = $db->prepare($query);
+        $sql->bindParam(':usrId', $id, PDO::PARAM_INT);
+        $sql->execute();
+
+        $subjectList = $sql->fetchall(PDO::FETCH_BOTH);
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $subjectList;
+}
+
+/***
+ * fctSubjectDetails: Return details about a subject in an array
+ * Usage: Administration-Subjects
+ * @param int $id
+ * @return array
+ */
+function fctSubjectDetails($id)
+{
+    try {
+        $db = new myPDO();
+
+        $query = "SELECT s.*, count(distinct(m.msg_id)) as nbMessages, count(distinct(d.dis_usrid)) as nbMembers
+                  FROM subject s
+                    JOIN message m ON m.msg_subid = s.sub_id
+                    JOIN distribution d on d.dis_subid=s.sub_id
+                  WHERE sub_id=:subId";
+        $sql = $db->prepare($query);
+        $sql->bindParam(':subId', $id, PDO::PARAM_INT);
+        $sql->execute();
+
+        $subjectList = $sql->fetchall(PDO::FETCH_BOTH);
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $subjectList;
+}
+
 /* Distribution --------------------------------------------------------------------------- */
 /***
  * fctDistributionAdd : Add a relation user->subject and return rowCount()
- * @param $subId
- * @param $usrId
+ * @param int $subId
+ * @param array $to
  * @return bool|string
  */
 function fctDistributionAdd($subId, $usrId)
 {
-
     try {
         $db = new myPDO();
-
+        $i = 0;
         $sql = $db->prepare("INSERT INTO distribution (dis_subid, dis_usrid) VALUES (:subId, :usrId)");
         $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
         $sql->bindParam(':usrId', $usrId, PDO::PARAM_INT);
@@ -610,12 +773,7 @@ function fctDistributionAdd($subId, $usrId)
         $result = $sql->rowCount();
 
     } catch (PDOException $e) {
-        if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry."; //TODO
-        } else {
-            die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
-        }
-        return false;
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
     return $result;
@@ -628,7 +786,7 @@ function fctDistributionAdd($subId, $usrId)
  * @param int $notifications
  * @return int
  */
-function fctDistributionRemove($subId, $usrId, $notifications)
+function fctDistributionRemove($subId, $usrId)
 {
     try {
         $db = new myPDO();
@@ -644,18 +802,13 @@ function fctDistributionRemove($subId, $usrId, $notifications)
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
-
-    if ($notifications > 0) {
-        //TODO Remove notifications
-    } else {
-        return $result;
-    };
+    return $result;
 }
 
 /* Message -------------------------------------------------------------------------------- */
-//TODO:OBSOLETE - done a check
 /***
  * fctMessageAdd : Add a Message and return lastInsertId()
+ * Usage: In the chatbox --> Trigger after insert on Message
  * @param int $subId
  * @param int $from
  * @param string $content
@@ -677,62 +830,37 @@ function fctMessageAdd($subId, $from, $content, $date = NULL)
         $lastId = $db->lastInsertId();
 
     } catch (PDOException $e) {
-        if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-            $messg = "Duplicate entry."; //TODO
-        } else {
-            die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
-        }
-        return false;
+
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
     return $lastId;
 }
 
-//TODO: OBSOLETE
-/***
- * fctMessageSubDelete
- * @param int $subId
- * @return int
- */
-function fctMessageSubDelete($subId)
-{
-    try {
-        $db = new myPDO();
-
-        $sql = $db->prepare("DELETE FROM message WHERE msg_subid = :subId");
-        $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
-        $sql->execute();
-
-        $result = $sql->rowCount();
-
-    } catch (PDOException $e) {
-        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
-    }
-    $db = NULL; // Close connection
-    return $result;
-}
-
 /***
  * fctMessageList : Return user's messages in an array
+ * --> Calls fctNotificationRead before displaying messages
  * @param int $userId
  * @param int $subjectId
  * @param int $deleted
  * @return mixed
  */
-function fctMessageList($userId, $subjectId, $deleted)
+function fctMessageList($userId, $subjectId)
 {
     try {
         $db = new myPDO();
 
-        $query = "SELECT u.usr_id, u.usr_name, u.usr_lastname, usr_avatar, m.msg_date, m.msg_content, n.not_read
-                    FROM message m
+        $query = "SELECT u.usr_id, u.usr_name, u.usr_lastname, usr_avatar, m.msg_id, m.msg_date, m.msg_content, n.not_read
+                  FROM message m
                        JOIN subject s on s.sub_id = m.msg_subid
-                       JOIN distribution d on d.dis_subid = msg_subid
+                       JOIN distribution d on d.dis_subid = m.msg_subid
                        JOIN user u ON u.usr_id = m.msg_from
-                       ";
-        !$deleted ?: $query .= "LEFT OUTER ";
-        $query .= "JOIN notification n ON n.not_msgid = m.msg_id
-                    WHERE d.dis_usrid = :usrId AND s.sub_id = :subId AND (n.not_usrid=:usrId OR n.not_usrid IS NULL)";
+                       left
+                       JOIN notification n ON n.not_msgid = m.msg_id
+                       AND( n.not_usrid = :usrId OR n.not_usrid IS NULL)
+                  WHERE d.dis_usrid = :usrId
+                   AND s.sub_id = :subId";
+
         $sql = $db->prepare($query);
 
         $sql->bindParam(':usrId', $userId, PDO::PARAM_INT);
@@ -741,6 +869,9 @@ function fctMessageList($userId, $subjectId, $deleted)
         $sql->execute();
         $messageList = $sql->fetchall(PDO::FETCH_ASSOC);
 
+        foreach ($messageList as $messageItem) {
+            fctNotificationRead($messageItem['msg_id'], $userId);
+        }
 
     } catch (PDOException $e) {
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
@@ -752,11 +883,12 @@ function fctMessageList($userId, $subjectId, $deleted)
 /* -- Notifications ----------------------------------------------------------------------- */
 /***
  * fctNotificationRemove: Remove a notification and return rowCount()
- * @param int $msgId
+ * Usage: Link displayed on each message in the chatbox
  * @param int $usrId
+ * @param int $msgId
  * @return int
  */
-function fctNotificationRemove($msgId, $usrId)
+function fctNotificationRemove($usrId, $msgId)
 {
     try {
         $db = new myPDO();
@@ -775,11 +907,122 @@ function fctNotificationRemove($msgId, $usrId)
     return $result;
 }
 
+/***
+ * fctNotificationRead: Mark User Subject Notification as read and return rowCount()
+ * Usage: Called when Subject Messages are retrieved (fctMessageList)
+ * @param int $msgId
+ * @param int $usrId
+ * @return int
+ */
+function fctNotificationRead($msgId, $usrId)
+{
+    try {
+        $db = new myPDO();
+
+        $sql = $db->prepare("UPDATE notification SET not_read = 1 WHERE not_msgid=:msgId AND not_usrid=:usrId");
+        $sql->bindParam(':msgId', $msgId, PDO::PARAM_INT);
+        $sql->bindParam(':usrId', $usrId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $result = $sql->rowCount();
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $result;
+}
+
+/***
+ * fctNotificationCount: Return number of unread notifications
+ * @param int $usrId
+ * @param $int $subId
+ * @return array
+ */
+function fctNotificationCount($usrId, $subId)
+{
+    try {
+        $db = new myPDO();
+
+        $query = "SELECT COUNT(*) AS count FROM notification n
+                JOIN message m ON msg_id = n.not_msgid
+                WHERE m.msg_subid = :subId ";
+        $usrId < 0 ?: $query .= "AND n.not_usrid = :usrId";
+        $query .= " AND n.not_read = 0";
+
+        $sql = $db->prepare($query);
+        $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
+        $usrId < 0 ?: $sql->bindParam(':usrId', $usrId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $result = $sql->fetch();
+
+        if ($result['count'] > 0) {
+            $count = $result['count'];
+        } else {
+            $count = 0;
+        }
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $count;
+}
+
+/***
+ * fctNotificationUserRemove: Calls procedure P_NotifUserRemove
+ * @param $usrId
+ * @param $subId
+ * @return int
+ */
+function fctNotificationUserRemove($usrId, $subId)
+{
+    try {
+        $db = new myPDO();
+
+        $sql = $db->prepare("call P_NotifUserRemove(:usrId,:subId,@count)");
+        $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
+        $sql->bindParam(':usrId', $usrId, PDO::PARAM_INT);
+        $sql->execute();
+        $sql = $db->query("SELECT @count");
+        $sql->execute();
+
+        $result = $sql->fetchColumn();
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $result;
+}
+
+function fctNotificationUserAdd($userId, $subjectId) //called by a function
+{
+    try {
+
+        $db = new myPDO();
+        $sql = $db->prepare("call P_NotifUserAdd(:usrId,:subId,@count)");
+        $sql->bindParam(':subId', $subjectId, PDO::PARAM_INT);
+        $sql->bindParam(':usrId', $userId, PDO::PARAM_INT);
+        $sql->execute();
+        $sql = $db->query("SELECT @count");
+        $sql->execute();
+
+        $result = $sql->fetchColumn();
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $result;
+}
+
 /* -- Admin ------------------------------------------------------------------------------- */
 
 /* Settings ------------------------------------------------------------------------------- */
 /***
- * fctSettingAdd : Add a Setting and return True or False
+ * fctSettingAdd : Add a Setting and return True or False (Configuration / Demo data)
  * @param string $name
  * @param string $type
  * @param string $value
@@ -814,13 +1057,13 @@ function fctSettingAdd($type, $name, $value)
  * @param string $value
  * @return int
  */
-function fctSettingEdit($name, $value)
+function fctSettingEdit($id, $value)
 {
     try {
         $db = new myPDO();
 
-        $sql = $db->prepare("UPDATE settings SET set_value = :value WHERE set_name = :name");
-        $sql->bindParam(':name', $name, PDO::PARAM_STR);
+        $sql = $db->prepare("UPDATE settings SET set_value = :value WHERE set_id = :id");
+        $sql->bindParam(':id', $id, PDO::PARAM_STR);
         $sql->bindParam(':value', $value, PDO::PARAM_STR);
         $sql->execute();
 
@@ -834,7 +1077,29 @@ function fctSettingEdit($name, $value)
 }
 
 /***
- * fctSettingList : Return $type Settings in an array
+ * fctSettingTypeList : Return Types of Settings in an array
+ * @param string $type
+ * @return mixed
+ */
+function fctSettingTypeList()
+{
+    try {
+        $db = new myPDO();
+
+        $sql = $db->prepare("SELECT DISTINCT(set_type) FROM settings");
+        $sql->execute();
+
+        $TypesList = $sql->fetchall(PDO::FETCH_BOTH);
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $TypesList;
+}
+
+/***
+ * fctSettingList : Return Settings of a Type in an array
  * @param string $type
  * @return mixed
  */
@@ -843,7 +1108,7 @@ function fctSettingList($type)
     try {
         $db = new myPDO();
 
-        $sql = $db->prepare("SELECT set_name, set_value FROM settings WHERE set_type=:type");
+        $sql = $db->prepare("SELECT * FROM settings WHERE set_type=:type");
         $sql->bindParam(':type', $type, PDO::PARAM_STR);
         $sql->execute();
 
@@ -857,7 +1122,7 @@ function fctSettingList($type)
 }
 
 /***
- * fctSettingItem: Return a $type->$name setting
+ * fctSettingItem: Return a given Type + Setting
  * @param string $type
  * @param string $name
  * @return mixed
@@ -881,37 +1146,19 @@ function fctSettingItem($type, $name)
     return $settingsItem['set_value'];
 }
 
-//echo "user <br/>";
-//echo fctUserAdd('Admin', 'Admin', 'admsin@localhost', 'admin') > 0 ? "OK <br/>" : "Pas OK <br/>";
-//echo "login : <br/>";
-//echo fctUserLogin('frank@localhost', '1234') . " <br/>" ? "OK <br/>" : "Pas OK <br/>";
-//echo fctUserLogin('frank@localhost', '2234') . " <br/>" ? "OK <br/>" : "Pas OK <br/>";
-//echo "group : <br/>";
-//echo fctGroupAdd('Admin') . " <br/>";
-//echo "member : <br/>";
-//echo fctMembershipAdd(1, 1) . " <br/>";
-//echo "subject : <br/>";
-//echo fctSubjectAdd('Test subject2', 2) . " <br/>";
-//echo "message : <br/>";
-//echo fctMessageAdd(1, 2, 2, 'Message 2') . " <br/>";
-//echo "settings : <br/>";
-//echo fctSettingAdd('SITE_CONFIG', 'SITE_NAME', 'ContactModule') ? "OK <br/>" : "Pas OK <br/>";
-//echo fctSettingAdd('SITE_CONFIG', 'SITE_ADDRESS', 'http://localhost/phpsql/') ? "OK <br/>" : "Pas OK <br/>";
-//echo fctSettingAdd('SITE_CONFIG', 'SITE_WEBMASTER', 'Frank Théodoloz') ? "OK <br/>" : "Pas OK <br/>";
-//echo fctSettingAdd('SITE_CONFIG', 'SITE_WEBMASTER_EMAIL', 'elv-frank.thdlz@eduge.ch') ? "OK <br/>" : "Pas OK <br/>";
-//
-//print_r(fctSettingList('SITE_CONFIG'));
-//print_r(fctMessageList());
-
-
+/***
+ * clearDatabase: clear content of db
+ */
 function clearDatabase()
 {
     try {
         $db = new myPDO();
 
-        $sql = $db->prepare("DELETE FROM settings");
+        $sql = $db->prepare("DELETE FROM notification");
         $sql->execute();
         $sql = $db->prepare("DELETE FROM message; ALTER TABLE message AUTO_INCREMENT=1");
+        $sql->execute();
+        $sql = $db->prepare("DELETE FROM distribution");
         $sql->execute();
         $sql = $db->prepare("DELETE FROM subject; ALTER TABLE subject AUTO_INCREMENT=1");
         $sql->execute();
@@ -921,6 +1168,8 @@ function clearDatabase()
         $sql->execute();
         $sql = $db->prepare("DELETE FROM user; ALTER TABLE user AUTO_INCREMENT=1");
         $sql->execute();
+        $sql = $db->prepare("DELETE FROM settings; ALTER TABLE settings AUTO_INCREMENT=1");
+        $sql->execute();
 
     } catch (PDOException $e) {
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
@@ -928,9 +1177,8 @@ function clearDatabase()
     $db = NULL; // Close connection
 }
 
-//TODO Update subject, distribution
 /***
- * Populate database with demonstration data --> Called at the end of this file !!
+ * fctInsertDemoData: Populate database with demonstration data
  */
 function fctInsertDemoData()
 {
@@ -942,11 +1190,11 @@ function fctInsertDemoData()
     fctGroupAdd('ADMIN', 'Administrators');
     fctGroupAdd('USER', 'Users');
 
-    fctUserAdd('Admin', 'Admin1', 'admin@localhost', 'admin');
+    fctUserAdd('ADMIN', 'Administrator', 'admin@localhost', 'admin');
     fctMembershipAdd(1, 1);
     fctUserChangeActive(1, 1);
 
-    fctUserAdd('Super', 'Admin2', 'super@localhost', 'super');
+    fctUserAdd('SUPER', 'Administrator', 'super@localhost', 'super');
     fctMembershipAdd(1, 2);
     //fctUserChangeActive(2,1);
 
@@ -974,16 +1222,19 @@ function fctInsertDemoData()
     fctMembershipAdd(2, 8);
     //fctUserChangeActive(8, 1);
 
-    fctMessageAdd(3, 1, 1, 'Message 1.1', "2018-08-01");
-    fctMessageAdd(1, 3, 1, 'Message 1.2', "2018-08-02 13:22:12");
+    fctSubjectNew(1, array(2, 3), "Sujet1", 'Message 1.1', "2018-08-01");
+    fctMessageAdd(1, 2, 'Message 1.2', "2018-08-02 13:22:12");
 
-    fctSubjectAdd('Subject2', 1);
-    fctMessageAdd(3, 1, 2, 'Message 2.1', "2018-08-03 13:22:12");
-    fctMessageAdd(1, 3, 2, 'Message 2.2', "2018-08-04 13:22:12");
+    fctSubjectNew(3, array(1, 2), "Sujet2", 'Message 2.1', "2018-08-01");
+    fctMessageAdd(2, 1, 'Message 2.2', "2018-08-03 13:22:12");
 
-    fctMessageAdd(3, 1, 1, 'Message 1.3', "2018-08-09 13:22:12");
-
-    fctMessageAdd(3, 1, 1, 'Message 1.4', NULL);
+//    fctMessageAdd(1, 3, 2, 'Message 2.2', "2018-08-04 13:22:12");
+//
+//    fctMessageAdd(3, 1, 1, 'Message 1.3', "2018-08-09 13:22:12");
+//
+//    fctMessageAdd(3, 1, 1, 'Message 1.4', NULL);
 }
 
+//clearDatabase();
 //fctInsertDemoData();
+//print_r(fctNotificationCount(1, 13));

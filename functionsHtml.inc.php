@@ -199,6 +199,9 @@ function fctShowToast($type, $title, $content, $duration = 5000)
 </script>';
 }
 
+function fctGetAvatars($subId){
+
+}
 ?>
 
 

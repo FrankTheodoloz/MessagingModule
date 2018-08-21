@@ -1,12 +1,12 @@
 <?php
 /**
- * Subject: Display a selection of users to be added in a Group
+ * Subject: Administration of Groups members : User selection
  * User: Frank
  * Date: 07/08/2018
  * Time: 21:59
  */
+
 global $pageParameter;
-global $pageStatus;
 
 $alert = 0;
 if ($pageParameter > 0) {
@@ -43,7 +43,7 @@ if ($pageParameter > 0) {
         </button>
     </div>
 
-    <form name="editForm" action="groupEdit.php" target="_self" method="post">
+    <form name="editForm" action="groupPost.php" target="_self" method="post">
         <input type="hidden" name="action" value="memberAdd">
         <input type="hidden" name="id" value="<?= $id ?>">
 
@@ -65,20 +65,17 @@ if ($pageParameter > 0) {
             </thead>
             <tbody>
 
-            <?php
-            foreach ($userList as $item) {
+            <?php foreach ($userList as $item) {
                 $item["usr_active"] == 1 ? $icon = "fa fa-check text-success" : $icon = "fa fa-times-circle text-danger";
-
-                echo '<tr>
-                        <td><input type="checkbox" id="select" name="usr[]" value="' . $item["usr_id"] . '"  ></td>
-                        <td>' . $item["usr_name"] . '</td>
-                        <td>' . $item["usr_lastname"] . '</td>
-                        <td>' . $item["usr_email"] . '</td>
-                        <td class="align-middle text-center"><h3><i class="' . $icon . '"></i></h3></td>
-                    
-                  </tr>';
-            }
-            ?>
+                ?>
+                <tr>
+                    <td><input type="checkbox" id="select" name="usr[]" value="<?= $item["usr_id"] ?>" /></td>
+                    <td><?= $item["usr_name"] ?></td>
+                    <td><?= $item["usr_lastname"] ?></td>
+                    <td><?= $item["usr_email"] ?></td>
+                    <td class="text-center"><h3><i class="<?= $icon ?>"></i></h3></td>
+                </tr>
+            <?php } ?>
 
             </tbody>
 
@@ -91,4 +88,10 @@ if ($pageParameter > 0) {
             <button type="submit" class="btn btn-primary">Submit</button>
         </div>
     </form>
+
+    <div class="col mt-4">
+        <a class="btn text-muted" href="?id=<?= fctUrlOpensslCipher("groupDetail.php," . $id) ?>">
+            <h4>back to group page <i class="fas fa-angle-double-left " aria-hidden="true"></i></h4>
+        </a>
+    </div>
 </div>

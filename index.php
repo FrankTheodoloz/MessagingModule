@@ -15,6 +15,7 @@ global $page;   //requestedPage.php, pageParameter, arrMessages
 global $pageRequested;
 global $pageParameter;
 global $pageStatus;
+$pageStatus=array();
 $error = false;
 
 session_start();
@@ -62,20 +63,22 @@ if (!isset($_SESSION['user']['id'])) {
         isset($page[1]) ? $pageParameter = $page[1] : $pageParameter = 0;
 
         if (isset($page[2])) {
-
             try {
                 $pageStatus = unserialize($page[2]);
             } catch (Exception $e) {
                 $pageStatus[] = array("error", "Error", "Url serialisation Issue");
-
             }
         } else {
-            $pageStatus = "";
+            //$pageStatus = "";
         }
 
-
-        //last check if requested page (file) veritably exists and redirection + avoid calling itself
-        file_exists($pageRequested) && $pageRequested != 'index.php' ? include($pageRequested) : include($defaultPage);
+        //last check if requested page (file) veritably exists + avoid calling itself
+        if (file_exists($pageRequested) && $pageRequested != 'index.php') {
+            include($pageRequested);
+        } else {
+            $pageStatus[] = array("error", "Error", "Page not found");
+            include($defaultPage);
+        }
 
     } else {
         //case logged user but no page requested

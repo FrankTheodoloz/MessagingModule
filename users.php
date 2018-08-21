@@ -67,7 +67,7 @@ $userList = fctUserList();
             <?php
             foreach ($userList as $item) {
 
-                $item['usr_avatar'] ? $image = '<img id="avatar" src="' . $item['usr_avatar'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">' : $image = '<img  id="avatar" avatar="' . $item['usr_name'] . " " . $item['usr_lastname'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">';
+                $item['usr_avatar'] ? $image = '<img id="avatar" src="' . CONST_IMAGE_PATH.$item['usr_avatar'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">' : $image = '<img id="avatar" avatar="' . $item['usr_name'] . " " . $item['usr_lastname'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">';
 
                 $item["usr_active"] == 1 ? $icon = "fa fa-check text-success" : $icon = "fa fa-times-circle text-danger";
                 echo '<tr>
@@ -94,6 +94,11 @@ $userList = fctUserList();
             </a>
         </div>
 
+        <div class="col mt-4">
+            <a class="btn text-muted" href="?id=<?= fctUrlOpensslCipher("admin.php") ?>">
+                <h4>back to admin page <i class="fas fa-angle-double-left " aria-hidden="true"></i></h4>
+            </a>
+        </div>
     </div>
 
 <?= fctFilterJS(); ?>

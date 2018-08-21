@@ -1,6 +1,7 @@
 <?php
 /**
- * Created by PhpStorm.
+ * Subject: POST file for Login
+ * Usage: Check $_POST, check with DB, reports error and redirect
  * User: Frank
  * Date: 03/08/2018
  * Time: 14:37
@@ -8,7 +9,7 @@
 
 ($_SERVER["SCRIPT_FILENAME"] == __FILE__) ? header("location:.") : ""; //redirect to index if this file is called directly
 
-if (isset($_POST['email']) && isset($_POST['pwd']) && !empty($_POST['email']) && !empty($_POST['pwd'])) {
+if (isset($_POST['email']) && isset($_POST['pwd'])) {
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $pwd = filter_var($_POST['pwd'], FILTER_SANITIZE_STRING);
 
@@ -16,10 +17,6 @@ if (isset($_POST['email']) && isset($_POST['pwd']) && !empty($_POST['email']) &&
         unset($_SESSION['Error']);
         header("location:.");
     }
-} else {
-    // these variables must be declared
-    $email = "";
-    $pwd = "";
 }
 ?>
 
@@ -44,9 +41,9 @@ if (isset($_POST['email']) && isset($_POST['pwd']) && !empty($_POST['email']) &&
                             </div>
                         </div>
                         <div class="form-group mt-4">
-                            <input type="email" class="form-control mb-2" name="email" id="email" placeholder="Email" value="<?= $email ?>" required>
+                            <input type="email" class="form-control mb-2" name="email" placeholder="Email" required>
 
-                            <input type="password" class="form-control" name="pwd" id="pwd" placeholder="Password" required>
+                            <input type="password" class="form-control" name="pwd" placeholder="Password" required>
                         </div>
                     </div>
                     <!-- Modal footer -->

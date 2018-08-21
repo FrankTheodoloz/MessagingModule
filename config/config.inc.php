@@ -8,6 +8,7 @@
 
 //Constants
 define("CONST_DEBUGMODE", 0);
+define("CONST_IMAGE_PATH", "img/avatar/");
 define("CONST_TIMEOUT_DURATION", 1800); //in seconds
 define("CONST_BCRYPT_COST", 12); //takes significantly more time above 12
 

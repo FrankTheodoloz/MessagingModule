@@ -5,31 +5,25 @@
  * Date: 08/08/2018
  * Time: 13:19
  */
-//
-global $pageParameter;
-//global $pageStatus;
-//$infoMessage="";
+global $pageParameter; //always defined
 
-$subjectList = fctSubjectList($_SESSION['user']['id']);
-$subId = 0;
-if ($pageParameter > 0) { //a subject is selected
-    $subId = $pageParameter;
+$subjectId = $pageParameter;
+if ($subjectId > 0) { //a subject is selected
 
-} else { //no subject selected take the last one
-    if (isset($subjectList[0]['sub_id']) && $subjectList[0]['sub_id'] > 0) { //user has a subject
-        $subId = $subjectList[0]['sub_id'];
+    isset($_POST['deleted']) ? $deleted = 1 : $deleted = 0;
+    $messageList = fctMessageList($_SESSION['user']['id'], $subjectId);
+    $userNotInDistribution = fctDistributionUsersNotIn($subjectId);
+    $userInDistribution = fctDistributionUsersIn($subjectId);
 
-    } else {
-        $subId = 0;
-    }
+} else {
+    //no subject selected
 }
-$messageList = fctMessageList($_SESSION['user']['id'], $subId, 1);
+$subjectList = fctUserSubjectList($_SESSION['user']['id']);
 $userList = fctUserList(0);
-$to;
 ?>
 <link rel="stylesheet" href="css/messaging.css"/>
 
-<div class="container container-fluid">
+<div class="container">
 
     <div class="chatbox">
 
@@ -41,184 +35,291 @@ $to;
                 <div class="inbox_search">
                     <input class="searchField" type="text" id="myInput" name="SearchInbox" placeholder="Filter subjects..."/>
                 </div>
-
             </div>
             <div class="inbox_list" id="myTable">
 
-                <?php if ($subId > 0) {
-                    foreach ($subjectList as $item) {
+                <!--                --><?php //if (count($subjectList) > 0) {
+                //                    foreach ($subjectList as $subjectItem) {
+                //
+                //                        $subjectItem['sub_id'] == $subjectId ? $active = 1 : $active = 0;
+                //                        $subjectItem['usr_avatar'] ? $image = '<img src="' . CONST_IMAGE_PATH . $subjectItem['usr_avatar'] . '" alt="' . $subjectItem['usr_name'] . " " . $subjectItem['usr_lastname'] . '">' : $image = '<img avatar="' . $subjectItem['usr_name'] . " " . $subjectItem['usr_lastname'] . '" alt="' . $subjectItem['usr_name'] . " " . $subjectItem['usr_lastname'] . '">';
+                //
+                //                        if ($active == 1) { //active subject
+                //                            $to = $subjectItem['usr_id']; //current correspondant
+                //                            echo '<div class="inbox_item active_item">';
+                //                        } else {
+                //                            echo '<div class="inbox_item" onclick="window.location = \'?id=' . fctUrlOpensslCipher("messages.php," . $subjectItem["sub_id"]) . '\'">';
+                //                        }
+                //
+                //                        echo '<div class="item_icon">' . $image . '</div>
+                //                    <div class="item_content">
+                //                        <div class="item_details">
+                //                            <h5>' . $subjectItem["usr_name"] . ' ' . $subjectItem["usr_lastname"] . ' <span>' . date("d/m/Y", strtotime($subjectItem["sub_lastdate"])) . '</span></h5>
+                //                        </div>
+                //                        <div class="item_subject">
+                //                            ' . $subjectItem["sub_name"] . ' <span class="badge badge-pill badge-info">' . fctNotificationCount($_SESSION['user']['id'], $subjectItem['sub_id']) . '</span>
+                //                        </div>
+                //                    </div>
+                //                </div>';
+                //                    }
+                //                } ?>
 
-                        $item['sub_id'] == $subId ? $active = 1 : $active = 0;
-                        $item['usr_avatar'] ? $image = '<img src="' . $item['usr_avatar'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">' : $image = '<img avatar="' . $item['usr_name'] . " " . $item['usr_lastname'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '">';
+                <?php if (count($subjectList) > 0) { //there are subject
+                foreach ($subjectList
 
-                        if ($active == 1) { //active subject
-                            $to = $item['usr_id']; //current correspondant
-                            echo '<div class="inbox_item active_item">';
-                        } else {
-                            echo '<div class="inbox_item" onclick="window.location = \'?id=' . fctUrlOpensslCipher("messages.php," . $item["sub_id"]) . '\'">';
+                as $subjectItem) {
+                if ($subjectItem["usr_avatar"]) {
+                    $image = "<img src='" . CONST_IMAGE_PATH . $subjectItem["usr_avatar"] . "' alt='" . $subjectItem["usr_name"] . " " . $subjectItem["usr_lastname"] . "'>";
+                } else {
+                    $image = "<img avatar='" . $subjectItem["usr_name"] . " " . $subjectItem["usr_lastname"] . "' alt='" . $subjectItem["usr_name"] . " " . $subjectItem["usr_lastname"] . "'>";
+                }
+
+                $subjectItem["sub_id"] == $subjectId ? $active = 1 : $active = 0;
+                $unreadItems = fctNotificationCount($_SESSION['user']['id'], $subjectItem['sub_id']);
+                if ($active == 1) { ?>
+                <div class="inbox_item active_item">
+                    <?php } else { ?>
+                    <div class="inbox_item" onclick="window.location = '?id=<?= fctUrlOpensslCipher("messages.php," . $subjectItem["sub_id"]) ?>'">
+                        <?php } ?>
+
+                        <div class="item_icon"><?= $image ?></div>
+                        <div class="item_content">
+                            <div class="item_details">
+                                <h5><?= $subjectItem["usr_name"] . " " . $subjectItem["usr_lastname"] . "<span>" . date("d/m/Y", strtotime($subjectItem["sub_lastdate"])) ?></span></h5>
+                            </div>
+                            <div class="item_subject">
+                                <?= $subjectItem["sub_name"] ?> <span class="badge badge-pill badge-info"><?= $unreadItems > 0 ? $unreadItems : "" ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    <?php }
+                    } ?>
+                </div>
+                <button type="button" class="inbox_newbutton" data-toggle="modal" data-target="#modalMessageNew">
+                    <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <!-- Right pane -->
+            <?php if ($subjectId > 0) { ?>
+                <div class="subjectHeader">
+                    <div class="subjectUsers">
+
+                        <?php
+                        foreach ($userInDistribution as $userItem) {
+                            $tooltip = ' data-toggle="tooltip" data-placement="bottom" title="' . $userItem['usr_name'] . " " . $userItem['usr_lastname'] . '"';
+                            if ($userItem['usr_avatar']) {
+                                echo '<img src="' .CONST_IMAGE_PATH. $userItem['usr_avatar'] . '" alt="' . $userItem['usr_name'] . " " . $userItem['usr_lastname'] . '"' . $tooltip . '>';
+                            } else {
+                                echo '<img avatar="' . $userItem['usr_name'] . " " . $userItem['usr_lastname'] . '" alt="' . $userItem['usr_name'] . " " . $userItem['usr_lastname'] . '"' . $tooltip . '>';
+                            }
                         }
 
-                        echo '<div class="item_icon">' . $image . '</div>
-                    <div class="item_content">
-                        <div class="item_details">
-                            <h5>' . $item["usr_name"] . ' ' . $item["usr_lastname"] . ' <span>' . date("d/m/Y", strtotime($item["sub_lastdate"])) . '</span></h5>
-                        </div>
-                        <div class="item_subject">
-                            ' . $item["sub_name"] . '
-                        </div>
+                        //if it is possible to add someone
+                        if (sizeof($userNotInDistribution) > 0) { ?>
+                            <a class="text-success" href="#" data-toggle="modal" data-target="#modalDistributionAdd">
+                                <i class="fa fa-plus" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Add user to subject"></i>
+                            </a>
+                        <?php } else { ?>
+                            <i class="fa fa-plus" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="Everyone's in :)"></i>
+                        <?php } ?>
+
                     </div>
-                </div>';
-                    }
-                } ?>
-            </div>
-            <button type="button" class="inbox_newbutton" data-toggle="modal" data-target="#newMessageModal">
-                <i class="fa fa-plus-circle" aria-hidden="true"></i>
-            </button>
+                </div>
 
-        </div>
+                <div class="custom-control custom-checkbox cb_delete">
+                    <form name="frmDeleted" action="?id=<?= fctUrlOpensslCipher("messages.php," . $subjectId) ?>" target="_self" method="post">
+                        <input type="checkbox" class="custom-control-input" name="deleted" id="cbDelete" onchange="this.form.submit()" <?= $deleted ? 'checked' : '' ?>>
+                        <label class="custom-control-label lef" for="cbDelete">show deleted</label>
+                    </form>
+                </div>
+            <?php } ?>
 
-        <!-- History pane ------------------------------------------------------------------------ -->
+            <div class="history">
 
-        <div class="history">
-            <div class="mesgs">
-                <?php if ($subId > 0) {
-                    foreach ($messageList as $item) {
+                <div class="mesgs">
+                    <form name="frmNotificationDelete" action="messagePost.php" target="_self" method="post">
+                        <input type="hidden" name="action" value="nofiticationDelete">
+                        <input type="hidden" name="subjectId" value="<?= $subjectId ?>">
+                        <input type="hidden" name="userId" value="-1">
+                        <input type="hidden" name="messageId" value="-1">
+                        <?php if ($subjectId > 0) {
+                            foreach ($messageList as $messageItem) {
+                                //deleted : 1 = all (0,1,NULL)| deleted : 0 $messageItem['not_read'] (0 or 1)
+                                if (!($deleted == 0 && !$messageItem['not_read'])) {
 
-                        $tooltip = ' data-toggle="tooltip" data-placement="bottom" title="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"';
+                                    $tooltip = ' data-toggle="tooltip" data-placement="bottom" title="' . $messageItem['usr_name'] . " " . $messageItem['usr_lastname'] . '"';
+                                    $deleteLink = '| <b href="#" onclick="javascript:fctNotificationDelete(' . $_SESSION["user"]["id"] . "," . $messageItem["msg_id"] . ');">delete</b>';
 
-                        if ($item['usr_id'] != $_SESSION['user']['id']) {//received message
-                            $item['usr_avatar'] ? $image = '<img src="' . $item['usr_avatar'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"' . $tooltip . '>' : $image = '<img avatar="' . $item['usr_name'] . " " . $item['usr_lastname'] . '" alt="' . $item['usr_name'] . " " . $item['usr_lastname'] . '"' . $tooltip . '>';
+                                    if ($messageItem['usr_id'] != $_SESSION['user']['id']) {//received message
 
-                            echo '<div class="message_in">
-                    <div class="message_icon">' . $image . '</div>
-                    <div class="message_in_content">
-                        <div class="message_body">
-                            <p>' . $item["msg_content"] . '</p>
-                        </div>
-                        <div class="message_details">' . date("d/m/Y | H:i", strtotime($item["msg_date"])) . '</div>
-                    </div>
-                </div>';
-
-
-                        } else {//sent message
-                            echo '<div class="message_out">
-                    <div class="message_out_content">
-                        <div class="message_body">
-                            <p>' . $item["msg_content"] . '</p>
-                        </div>
-                        <div class="message_details">' . date("d/m/Y | H:i", strtotime($item["msg_date"])) . '</div>
-                    </div>
-                </div>';
-                        }
-
-                    }
-                } ?>
-
-            </div>
-        </div>
-        <?php //TODO OBSOLETE delete conversation
-        if ($subId > 0) {
-
-            echo '<form name="MessageForm" action="messageAdd.php" target="_self" method="post">
-            <input type="hidden" name="subjectId" value="' . $subId . '"/>
-            <input type="hidden" name="to" value="' . $to . '"/>
-            <div class="delete_msg"><a href="#" data-toggle="modal" data-target="#confirmDeleteModal">delete conversation...</a></div> 
-            
-            <div class="message_new">
-                   <textarea name="content" id="content" class="form-control" placeholder="Reply..." required></textarea>
-            </div>
-                <button type="submit" class="send_buton" data-toggle="tooltip" data-placement="left" title="Send" ><h3><i class="fa fa-reply" aria-hidden="true"></i></h3></button>
-
-        </form>';
-
-        } ?>
-
-    </div>
-
-    <!-- Modal form New message -------------------------------------------------------------- -->
-    <div class="container">
-
-        <form name="NewMessageForm" action="messageNew.php" target="_self" method="post">
-            <div class="modal" id="newMessageModal">
-                <div class="modal-dialog modal-sm  modal-dialog-centered">
-                    <div class="modal-content">
-                        <!-- Modal Header -->
-                        <div class="modal-header bg-primary text-light">
-                            <h4 class="modal-title">New Message</h4>
-                        </div>
-
-                        <!-- Modal body -->
-                        <div class="modal-body">
-                            <div class="form-group mt-2">
-
-                                <select name="to[]" id="to" class="selectpicker form-control mb-2" multiple required>
-
-
-                                    <?php
-                                    foreach ($userList as $item) {
-                                        if ($item['usr_id'] != $_SESSION['user']['id']) {
-                                            echo '<option value="' . $item['usr_id'] . '" data-subtext="' . $item['usr_lastname'] . '">' . $item['usr_name'] . '</option>';
+                                        if ($messageItem['usr_avatar']) {
+                                            $image = '<img src="' .CONST_IMAGE_PATH. $messageItem['usr_avatar'] . '" alt="' . $messageItem['usr_name'] . " " . $messageItem['usr_lastname'] . '"' . $tooltip . '>';
+                                        } else {
+                                            $image = '<img avatar="' . $messageItem['usr_name'] . " " . $messageItem['usr_lastname'] . '" alt="' . $messageItem['usr_name'] . " " . $messageItem['usr_lastname'] . '"' . $tooltip . '>';
                                         }
-                                    }
-                                    ?>
-                                </select>
+                                        ?>
 
-                                <input type="text" name="subject" class="form-control mb-2" placeholder="Enter a subject..." required>
-                                <textarea name="content" class="form-control" style="min-height: 150px;" placeholder="Message..." required></textarea>
-                            </div>
-                        </div>
-                        <!-- Modal footer -->
-                        <div class="modal-footer">
-                            <button type="reset" class="btn btn-danger" data-toggle="modal" data-target="#newMessageModal">Cancel</button>
-                            <button type="submit" class="btn btn-success">Send</button>
-                        </div>
-                    </div>
+                                        <div class="message_in">
+                                            <div class="message_icon"><?= $image ?></div>
+                                            <div class="message_in_content">
+                                                <div class="message_body">
+                                                    <p><?= $messageItem["msg_content"] ?></p>
+                                                </div>
+                                                <div class="message_details"><?= date("d/m/Y | H:i", strtotime($messageItem["msg_date"])) ?> <?= !$messageItem['not_read'] ? '' : $deleteLink ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php } else {//sent message ?>
+
+                                        <div class="message_out">
+                                            <div class="message_out_content">
+
+
+                                                <div class="message_body">
+                                                    <p><?= $messageItem["msg_content"] ?></p>
+                                                </div>
+                                                <div class="message_details"><?= date("d/m/Y | H:i", strtotime($messageItem["msg_date"])) ?> <?= !$messageItem['not_read'] ? '' : $deleteLink ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php }
+                                }
+                            }
+                        } else {//invite to click a subject ?>
+
+                            <div class="text text-muted message_none"><i class="far fa-arrow-alt-circle-left"></i>
+                                <h1>Select a subject from the left pane.</h1></div>
+
+                        <?php } ?>
+                    </form>
                 </div>
             </div>
-        </form>
-    </div>
 
-    <!-- Modal form Delete confirm -->
-    <!-- <a href="#" data-toggle="modal" data-target="#confirmDeleteModal"> -->
-    <div class="container">
-        <form name="ConfirmDeleteForm" action="subjectDelete.php" target="_self" method="post">
-            <div class="modal" id="confirmDeleteModal">
+            <?php
+            if ($subjectId > 0) {
+
+                echo '<form name="MessageForm" action="messagePost.php" target="_self" method="post">
+                            <input type="hidden" name="action" value="add"/>
+                            <input type="hidden" name="subjectId" value="' . $subjectId . '"/>
+                                                        
+                            <div class="message_new">
+                                   <textarea name="content" id="content" class="form-control" placeholder="Reply..." required></textarea>
+                            </div>
+                                <button type="submit" class="send_buton" data-toggle="tooltip" data-placement="left" title="Send" ><h3><i class="fa fa-reply" aria-hidden="true"></i></h3></button>
+                
+                        </form>';
+
+            } ?>
+        </div>
+
+        <!-- Modal form New message -->
+        <div class="container">
+            <div class="modal" id="modalMessageNew">
                 <div class="modal-dialog modal-sm  modal-dialog-centered">
-                    <div class="modal-content">
-                        <!-- Modal Header -->
-            00            <div class="modal-header bg-danger text-light">
-                            <h3><i class="far fa-times-circle" aria-hidden="true"></i></h3>
-                            <h4 class="modal-title"> Delete confirmation</h4>
-                        </div>
+                    <form name="frmMessageNew" action="messagePost.php" target="_self" method="post">
+                        <input type="hidden" name="action" value="new"/>
 
-                        <!-- Modal body -->
-                        <div class="modal-body">
-                            <div class="form-group mt-2">
-                                Confirm deletion of Conversation and all Messages ?
+                        <div class="modal-content">
+                            <!-- Modal Header -->
+                            <div class="modal-header bg-primary text-light">
+                                <h4 class="modal-title">New Message</h4>
+                            </div>
+
+                            <!-- Modal body -->
+                            <div class="modal-body">
+                                <div class="form-group mt-2">
+
+                                    <select name="to[]" id="to" class="selectpicker form-control mb-4" multiple required>
+
+
+                                        <?php
+                                        foreach ($userList as $item) {
+                                            if ($item['usr_id'] != $_SESSION['user']['id']) {
+                                                echo '<option value="' . $item['usr_id'] . '" data-subtext="' . $item['usr_lastname'] . '">' . $item['usr_name'] . '</option>';
+                                            }
+                                        }
+                                        ?>
+                                    </select>
+
+                                    <input type="text" name="subject" class="form-control mb-2" placeholder="Enter a subject..." required>
+                                    <textarea name="content" class="form-control" style="min-height: 150px;" placeholder="Message..." required></textarea>
+                                </div>
+                            </div>
+                            <!-- Modal footer -->
+                            <div class="modal-footer">
+                                <button type="reset" class="btn btn-danger" data-toggle="modal" data-target="#modalMessageNew">Cancel</button>
+                                <button type="submit" class="btn btn-success">Send</button>
                             </div>
                         </div>
-
-                        <!-- Modal footer -->
-                        <div class="modal-footer">
-                            <input type="hidden" name="subjectId" value="<?= $subId ?>"/>
-                            <button type="reset" class="btn btn-danger" data-toggle="modal" data-target="#confirmDeleteModal">Cancel</button>
-                            <button type="submit" class="btn btn-success">Confirm</button>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
-        </form>
+        </div>
+
+        <!-- Modal User Add -->
+        <!-- <a href="#" data-toggle="modal" data-target="#modalDistributionAdd"> -->
+        <div class="container">
+
+            <div class="modal" id="modalDistributionAdd">
+                <div class="modal-dialog modal-sm  modal-dialog-centered">
+
+                    <form name="frmDistributionAdd" action="messagePost.php" target="_self" method="post">
+                        <input type="hidden" name="action" value="distributionAdd"/>
+                        <input type="hidden" name="subjectId" value="<?= $subjectId ?>"/>
+
+                        <div class="modal-content">
+                            <!-- Modal Header -->
+                            <div class="modal-header bg-dark text-light">
+                                <h3><i class="far fa-times-circle" aria-hidden="true"></i></h3>
+                                <h4 class="modal-title"> Add a user in conversation</h4>
+                            </div>
+
+                            <!-- Modal body -->
+                            <div class="modal-body">
+                                <div class="form-group mt-2">
+                                    <select name="to[]" id="to" class="selectpicker form-control mb-2" multiple required>
+
+                                        <?php
+                                        foreach ($userNotInDistribution as $item) {
+                                            if ($item['usr_id'] != $_SESSION['user']['id']) {
+                                                echo '<option value="' . $item['usr_id'] . '" data-subtext="' . $item['usr_lastname'] . '">' . $item['usr_name'] . '</option>';
+                                            }
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Modal footer -->
+                            <div class="modal-footer">
+                                <button type="reset" class="btn btn-danger" data-toggle="modal" data-target="#modalDistributionAdd">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Confirm</button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
     </div>
 
-</div>
-
-<script>
-    $(document).ready(function () {
-        $("#myInput").on("keyup", function () {
-            var value = $(this).val().toLowerCase();
-            $("#myTable .inbox_item").filter(function () {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    <script>
+        $(document).ready(function () {
+            $("#myInput").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("#myTable .inbox_item").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
             });
         });
-    });
-</script>
+
+        //Resource: https://stackoverflow.com/a/426417
+        function fctNotificationDelete(userId, messageId) {
+            var myForm = document.forms.frmNotificationDelete;
+            myForm.messageId.value = messageId;
+            myForm.userId.value = userId;
+            myForm.submit();
+        }
+    </script>

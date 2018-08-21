@@ -1,19 +1,12 @@
 <?php
 /**
- * Subject: Group Administration
+ * Subject: Administration of Groups : List
  * User: Frank
  * Date: 05/08/2018
  * Time: 22:08
  */
-global $pageParameter;
-global $pageStatus;
-$infoMessage = "";
 
-if (!$pageStatus == 0) {
-    $record = fctGroupList($pageParameter);
-    $infoMessage = "Group #" . $record[0]['grp_id'] . " " . $record[0]['grp_name'] . " (" . $record[0]['grp_description'] . ") " . $pageStatus;
-    $pageStatus = "";
-}
+global $pageParameter;
 
 $groupList = fctGroupList();
 
@@ -80,7 +73,11 @@ $groupList = fctGroupList();
             <button type="button" class="btn btn-primary"><i class="fas fa-plus"></i> Add Group</button>
         </a>
     </div>
-
+    <div class="col mt-4">
+        <a class="btn text-muted" href="?id=<?= fctUrlOpensslCipher("admin.php") ?>">
+            <h4>back to admin page <i class="fas fa-angle-double-left " aria-hidden="true"></i></h4>
+        </a>
+    </div>
 </div>
 
 <?= fctFilterJS(); ?>
