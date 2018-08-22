@@ -557,6 +557,10 @@ function fctUsersNotGroup($id)
 /* Subject -------------------------------------------------------------------------------- */
 /***
  * fctSubjectNew: Add a subject, subject->user relation-s and first message return subject lastInsertId()
+ *
+ * This is a Transaction !
+ * TODO Look the transaction more in details ref https://stackoverflow.com/questions/10500217/pdo-transactions-function-calls
+ *
  * Usage: In the chatbox --> trigger after insert on message
  * Resource: https://stackoverflow.com/questions/24408434/pdo-transaction-syntax-with-try-catch
  *           http://php.net/manual/en/pdo.begintransaction.php
@@ -580,15 +584,17 @@ function fctSubjectNew($from, $to, $subject, $content, $date = NULL)
             $sql->execute();
             $lastSubjectId = $db->lastInsertId();
 
-            array_unshift($to, $from);
+            array_unshift($to, $from); //add current user (sender)
             foreach ($to as $item) {
 
+//                fctDistributionAdd($lastSubjectId, $item);
                 $sql = $db->prepare("INSERT INTO distribution (dis_subid, dis_usrid) VALUES (:subId, :usrId)");
                 $sql->bindParam(':subId', $lastSubjectId, PDO::PARAM_INT);
                 $sql->bindParam(':usrId', $item, PDO::PARAM_INT);
                 $sql->execute();
             }
 
+//            fctMessageAdd($lastSubjectId, $from, $content, $date);
             $sql = $db->prepare("INSERT INTO message (msg_from, msg_subid, msg_content, msg_date) VALUES (:from, :subId, :content, :date)");
             $sql->bindParam(':from', $from, PDO::PARAM_INT);
             $sql->bindParam(':subId', $lastSubjectId, PDO::PARAM_INT);
@@ -603,12 +609,7 @@ function fctSubjectNew($from, $to, $subject, $content, $date = NULL)
             if ($db->inTransaction()) {
                 $db->rollBack();
             }
-            if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
-                $messg = "Duplicate entry."; //TODO
-            } else {
-                die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
-            }
-            return false;
+            die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
         $db = NULL; // Close connection
         return $lastSubjectId;
@@ -649,8 +650,9 @@ function fctDistributionUsersNotIn($id)
 {
     try {
         $db = new myPDO();
-        //TODO WTF SELECT u.* FROM user u LEFT //JOIN distribution d ON d.dis_usrid=u.usr_id WHERE   d.dis_subid= 4 AND d.dis_usrid is null;
-        $sql = $db->prepare("select * from user u where u.usr_id not in (select d.dis_usrid from distribution d where d.dis_subid =:id)");
+        //TODO TO BE IMPROVED
+        //SELECT u.* FROM user u LEFT JOIN distribution d ON d.dis_usrid=u.usr_id WHERE  d.dis_subid= 4 AND d.dis_usrid is null;
+        $sql = $db->prepare("select * from user u where u.usr_id not in (select d.dis_usrid from distribution d where d.dis_subid =:id) ORDER BY usr_lastname ");
         $sql->bindParam(':id', $id, PDO::PARAM_INT);
 
         $sql->execute();
@@ -764,7 +766,7 @@ function fctDistributionAdd($subId, $usrId)
 {
     try {
         $db = new myPDO();
-        $i = 0;
+
         $sql = $db->prepare("INSERT INTO distribution (dis_subid, dis_usrid) VALUES (:subId, :usrId)");
         $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
         $sql->bindParam(':usrId', $usrId, PDO::PARAM_INT);
@@ -867,10 +869,14 @@ function fctMessageList($userId, $subjectId)
         $sql->bindParam(':subId', $subjectId, PDO::PARAM_INT);
 
         $sql->execute();
-        $messageList = $sql->fetchall(PDO::FETCH_ASSOC);
+        $messageList = $sql->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($messageList as $messageItem) {
-            fctNotificationRead($messageItem['msg_id'], $userId);
+            //fctNotificationRead($messageItem['msg_id'], $userId);
+            $sql = $db->prepare("UPDATE notification SET not_read = 1 WHERE not_msgid=:msgId AND not_usrid=:usrId");
+            $sql->bindParam(':msgId', $messageItem['msg_id'], PDO::PARAM_INT);
+            $sql->bindParam(':usrId', $userId, PDO::PARAM_INT);
+            $sql->execute();
         }
 
     } catch (PDOException $e) {
@@ -939,16 +945,16 @@ function fctNotificationRead($msgId, $usrId)
  * @param $int $subId
  * @return array
  */
-function fctNotificationCount($usrId, $subId)
+function fctNotificationCount($usrId, $subId, $showUnRead)
 {
     try {
         $db = new myPDO();
 
         $query = "SELECT COUNT(*) AS count FROM notification n
-                JOIN message m ON msg_id = n.not_msgid
-                WHERE m.msg_subid = :subId ";
-        $usrId < 0 ?: $query .= "AND n.not_usrid = :usrId";
-        $query .= " AND n.not_read = 0";
+                    JOIN message m ON msg_id = n.not_msgid
+                    WHERE m.msg_subid = :subId ";
+        $usrId < 0 ? '' : $query .= "AND n.not_usrid = :usrId";
+        $showUnRead == 0 ? '' : $query .= " AND n.not_read = 0";
 
         $sql = $db->prepare($query);
         $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
@@ -962,7 +968,6 @@ function fctNotificationCount($usrId, $subId)
         } else {
             $count = 0;
         }
-
     } catch (PDOException $e) {
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
@@ -971,7 +976,7 @@ function fctNotificationCount($usrId, $subId)
 }
 
 /***
- * fctNotificationUserRemove: Calls procedure P_NotifUserRemove
+ * fctNotificationUserRemove: Calls SQL procedure P_NotifUserRemove --NOT SUPPORTED BY INFOMANIAK
  * @param $usrId
  * @param $subId
  * @return int
@@ -997,7 +1002,13 @@ function fctNotificationUserRemove($usrId, $subId)
     return $result;
 }
 
-function fctNotificationUserAdd($userId, $subjectId) //called by a function
+/***
+ * fctNotificationUserAdd: Calls SQL procedure P_NotifUserAdd --NOT SUPPORTED BY INFOMANIAK
+ * @param $usrId
+ * @param $subId
+ * @return int
+ */
+function fctNotificationUserAdd($userId, $subjectId)
 {
     try {
 
@@ -1016,6 +1027,100 @@ function fctNotificationUserAdd($userId, $subjectId) //called by a function
     }
     $db = NULL; // Close connection
     return $result;
+}
+
+/*** REMPLACE LA PROCEDURE CAR PAS SUPPORTE PAR SERVEURS INFOMANIAK
+ * @param $subjectId
+ * @param $userId
+ * @return int
+ */
+function fctNotificationUserRemove2($subjectId, $userId)
+{
+    try {
+        $db = new myPDO();
+        $sql = $db->prepare("DELETE n FROM distribution d
+                                        JOIN subject s ON d.dis_subid= s.sub_id AND d.dis_usrid = :usrId
+                                        JOIN message m ON m.msg_subid = s.sub_id AND m.msg_subid = :subId
+                                        JOIN notification n ON n.not_msgid=m.msg_id AND n.not_usrid = :usrId");
+        $sql->bindParam(':subId', $subjectId, PDO::PARAM_INT);
+        $sql->bindParam(':usrId', $userId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $result = $sql->rowCount();
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $result;
+}
+
+/***REMPLACE LA PROCEDURE CAR PAS SUPPORTE PAR SERVEURS INFOMANIAK
+ * fctNotificationUserAdd2: crée une notification
+ * @param $subjectId
+ * @param $userId
+ * @return int
+ */
+function fctNotificationUserAdd2($subjectId, $userId)
+{
+
+    try {
+        $db = new myPDO();
+        $sql = $db->prepare("SELECT distinct(m.msg_id) FROM message m  where m.msg_subid = :subId");
+        $sql->bindParam(':subId', $subjectId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $messageList = $sql->fetchall(PDO::FETCH_BOTH);
+
+        $i = 0;
+        foreach ($messageList as $messageItem) {
+
+            try {
+                $sql = $db->prepare("INSERT INTO notification (not_msgid, not_usrid) VALUES(:msgId, :usrId)");;
+                $sql->bindParam(':usrId', $userId, PDO::PARAM_INT);
+                $sql->bindParam(':msgId', $messageItem['msg_id'], PDO::PARAM_INT);
+                $sql->execute();
+                $i++;// should the execute() throw an error, counter is not incremented.
+            } catch (PDOException $e) {
+                if (strpos($e->getMessage(), "Duplicate entry") || (strpos($e->getMessage(), "1062"))) {
+                    //don't care, continue !
+                }
+            }
+        }
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $i;
+}
+
+/*** REMPLACE LE TRIGGER CAR PAS SUPPORTE PAR SERVEURS INFOMANIAK
+ * @param $messageId
+ * @return int
+ */
+function fctNotificationMessages($messageId)
+{
+    try {
+        $db = new myPDO();
+        $sql = $db->prepare("SELECT distinct(u.usr_id) from user u join distribution d on d.dis_usrid = u.usr_id where d.dis_subid =:subId");
+        $sql->bindParam(':subId', $subjectId, PDO::PARAM_INT);
+        $sql->execute();
+
+        $userList = $sql->fetchall(PDO::FETCH_BOTH);
+
+        $i = 0;
+        foreach ($userList as $userItem) {
+            $sql = $db->prepare("INSERT INTO notification (not_usrid, not_msgid) VALUES(:usrId, :msgId)");;
+            $sql->bindParam(':msgId', $messageId, PDO::PARAM_INT);
+            $sql->bindParam(':usrId', $userItem, PDO::PARAM_INT);
+            $sql->execute();
+            $i++;
+        }
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $i;
 }
 
 /* -- Admin ------------------------------------------------------------------------------- */

@@ -73,18 +73,17 @@ if ($action == 'new') {
 
         $users = 0;
         $notif = 0;
-
         foreach ($to as $userId) {
 
-            $sqlresult = fctDistributionAdd($subjectId, $userId);
+            $userResult = fctDistributionAdd($subjectId, $userId);
 
-            if ($sqlresult > 0) {
-                $users += $sqlresult;
+            if ($userResult > 0) {
+                $users += $userResult;
 
-                $sqlresult = fctNotificationUserAdd($userId, $subjectId);
+                $notifResult = fctNotificationUserAdd2($subjectId, $userId);
 
-                if ($sqlresult > 0) {
-                    $notif += $sqlresult;
+                if ($notifResult > 0) {
+                    $notif += $notifResult;
                 } else {
                     $result[] = array("error", "Error", "Something went wrong with notifications.");
                 }
@@ -109,24 +108,33 @@ if ($action == 'new') {
         $notif = 0;
 
         foreach ($to as $userItem) {
-           
-            $sqlresult = fctDistributionRemove($subjectId, $userItem);
 
-            if ($sqlresult > 0) {
-                $users += $sqlresult;
+            $userDetails=fctUserList($userItem);
 
-                $sqlresult = fctNotificationUserRemove($userItem, $subjectId);
+            if (fctNotificationCount($userItem, $subjectId, 1)) {//if there are notifications to delete
 
-                if ($sqlresult > 0) {
-                    $notif += $sqlresult;
+                $notifResult = fctNotificationUserRemove2($subjectId,$userItem);
+
+                if ($notifResult > 0) {
+                    $notif += $notifResult;
+
                 } else {
-                    $result[] = array("error", "Error", "Something went wrong with notifications.");
+                    $result[] = array("error", "Error", "User : ".$userDetails['usr_name']." ".$userDetails['usr_lastname']."<br/> Error when deleting notifications.");
                 }
             } else {
-                $result[] = array("error", "Error", "User not removed to conversation.");
+                $result[] = array("info", "Info", "User : ".$userDetails['usr_name']." ".$userDetails['usr_lastname']."<br/>No notification to delete.");
             }
+
+            $userResult = fctDistributionRemove($subjectId, $userItem);
+
+            if ($userResult > 0) {
+                $users += $userResult;
+            } else {
+                $result[] = array("error", "Error", "User : ".$userDetails['usr_name']." ".$userDetails['usr_lastname']."<br/>User not removed to conversation.");
+            }
+
         }
-            $result[] = array("success", "Success", $users . " User(s) removed from subject and " . $notif . " notification(s) deleted.");
+        $result[] = array("success", "Success", $users . " User(s) removed from subject and " . $notif . " notification(s) deleted.");
 
     } else {
         $result[] = array("error", "Error", "Form input error");
@@ -158,5 +166,4 @@ header("location:.?id=" . $page);
 
 ?>
 <pre>$_REQUEST = <?= print_r($_REQUEST); ?> </pre>
-<pre>$_SESSION = <?= print_r($_SESSION); ?> </pre>
 <pre>$result = <?= print_r($result); ?> </pre>

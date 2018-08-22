@@ -31,6 +31,18 @@ CREATE TABLE `distribution` (
   `dis_usrid` int(8) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data for table `distribution`
+--
+
+INSERT INTO `distribution` (`dis_subid`, `dis_usrid`) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(2, 1),
+(2, 2),
+(2, 3);
+
 -- --------------------------------------------------------
 
 --
@@ -41,6 +53,20 @@ CREATE TABLE `membership` (
   `mem_usrid` int(8) NOT NULL,
   `mem_grpid` int(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `membership`
+--
+
+INSERT INTO `membership` (`mem_usrid`, `mem_grpid`) VALUES
+(1, 1),
+(2, 1),
+(3, 1),
+(4, 2),
+(5, 2),
+(6, 2),
+(7, 2),
+(8, 2);
 
 -- --------------------------------------------------------
 
@@ -56,6 +82,16 @@ CREATE TABLE `message` (
   `msg_content` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data for table `message`
+--
+
+INSERT INTO `message` (`msg_id`, `msg_subid`, `msg_from`, `msg_date`, `msg_content`) VALUES
+(1, 1, 1, '2018-07-31 22:00:00', 'Message 1.1'),
+(2, 1, 2, '2018-08-02 11:22:12', 'Message 1.2'),
+(3, 2, 3, '2018-07-31 22:00:00', 'Message 2.1'),
+(4, 2, 1, '2018-08-03 11:22:12', 'Message 2.2');
+
 -- --------------------------------------------------------
 
 --
@@ -67,6 +103,24 @@ CREATE TABLE `notification` (
   `not_usrid` int(8) NOT NULL,
   `not_read` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `notification`
+--
+
+INSERT INTO `notification` (`not_msgid`, `not_usrid`, `not_read`) VALUES
+(1, 1, 0),
+(1, 2, 0),
+(1, 3, 0),
+(2, 1, 0),
+(2, 2, 0),
+(2, 3, 0),
+(3, 1, 0),
+(3, 2, 0),
+(3, 3, 0),
+(4, 1, 0),
+(4, 2, 0),
+(4, 3, 0);
 
 -- --------------------------------------------------------
 
@@ -81,6 +135,14 @@ CREATE TABLE `settings` (
   `set_value` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data for table `settings`
+--
+
+INSERT INTO `settings` (`set_id`, `set_type`, `set_name`, `set_value`) VALUES
+(1, 'SITE_CONFIG', 'SITE_NAME', 'MessagingModule'),
+(2, 'SITE_CONFIG', 'COPYRIGHT', '&copy; 2018 &mdash; Frank Théodoloz');
+
 -- --------------------------------------------------------
 
 --
@@ -94,6 +156,14 @@ CREATE TABLE `subject` (
   `sub_lastusrid` int(8) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data for table `subject`
+--
+
+INSERT INTO `subject` (`sub_id`, `sub_name`, `sub_lastdate`, `sub_lastusrid`) VALUES
+(1, 'Sujet1', '2018-08-02 11:22:12', 2),
+(2, 'Sujet2', '2018-08-03 11:22:12', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -105,6 +175,14 @@ CREATE TABLE `ugroup` (
   `grp_name` varchar(32) NOT NULL,
   `grp_description` varchar(64) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `ugroup`
+--
+
+INSERT INTO `ugroup` (`grp_id`, `grp_name`, `grp_description`) VALUES
+(1, 'ADMIN', 'Administrators'),
+(2, 'USER', 'Users');
 
 -- --------------------------------------------------------
 
@@ -121,6 +199,16 @@ CREATE TABLE `user` (
   `usr_email` varchar(128) NOT NULL,
   `usr_pwdhash` varchar(60) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `user`
+--
+
+INSERT INTO `user` (`usr_id`, `usr_active`, `usr_name`, `usr_lastname`, `usr_avatar`, `usr_email`, `usr_pwdhash`) VALUES
+(1, 1, 'ADMIN', 'Administrator', NULL, 'admin@localhost', '$2y$12$0U7PXDBDK4y7BOy4Nrb1k.c9ZAlqU9qbQYJxDVWNkHTWJHnfaUarq'),
+(2, 0, 'SUPER', 'Administrator', NULL, 'super@localhost', '$2y$12$9o3Hip9vmUnin3/frDA76ebDwWfn0JuvDK5fbHqTsa1/A12YqeRN2'),
+(3, 1, 'Frank', 'Théodoloz', NULL, 'fthe@bluewin.ch', '$2y$12$kS6EuZmPFa061nD8ks5dGeDbdHe2BioPLNv.SricKh4moQmRMQ..6'),
+(4, 1, 'User', '1', NULL, 'user1@localhost', '$2y$12$BV43C4k4yCOwxmyDny9sg.IqmALnyIX7bLrWIRdCrgcYMm6bOCya2');
 
 --
 -- Indexes for dumped tables

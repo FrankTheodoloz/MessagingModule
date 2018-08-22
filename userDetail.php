@@ -99,7 +99,7 @@ if ($pageParameter > 0) {
                     <div class="col">
                         <div class="input-group mb-3">
                             <div class="input-group-prepend"><span class="input-group-text">Email</span></div>
-                            <input type="text" class="form-control" maxlength="128" <?= $newUser ? '' : 'value="' . $user["usr_email"] . '" disabled' ?>>
+                            <input type="text" class="form-control" name="email" maxlength="128" <?= $newUser ? '' : 'value="' . $user["usr_email"] . '" disabled' ?>>
                             <?= $newUser ? '' : '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalEmailChange"><i class="fas fa-pen "></i> change...</button>' ?>
                         </div>
                     </div>
@@ -194,10 +194,10 @@ if ($pageParameter > 0) {
                         <button type="submit" id="btnPwdSubmit" class="btn btn-primary">Submit</button>
                     </div>
                 </form>
-                <script src="js/check-passwords.js"></script>
             </div>
         </div>
     </div>
 
 <?php }?>
 
+<script src="js/check-passwords.js"></script>

@@ -75,5 +75,4 @@ header("location:.?id=" . $page);
 
 ?>
 <pre>$_REQUEST = <?= print_r($_REQUEST); ?> </pre>
-<pre>$_SESSION = <?= print_r($_SESSION); ?> </pre>
 <pre>$result = <?= print_r($result); ?> </pre>

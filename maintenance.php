@@ -61,7 +61,7 @@ $subjectList = fctUserSubjectList(-1);
                 <td><?= date("d/m/Y H:i", strtotime($subjectItem["sub_lastdate"])) ?></td>
                 <td><?= $subjectItem["usr_name"] ?> <?= $subjectItem["usr_lastname"] ?></td>
                 <td class="text-center"><?= $nbMembers ?></td>
-                <td class="text-center"><?= fctNotificationCount(-1, $subjectItem["sub_id"]) ?></td>
+                <td class="text-center"><?= fctNotificationCount(-1, $subjectItem["sub_id"],1) ?>/<?= fctNotificationCount(-1, $subjectItem["sub_id"],0) ?></td>
                 <td class="text-right">
                     <a class="btn btn-sm btn-outline-primary" href="?id=<?= fctUrlOpensslCipher("maintenanceDetail.php," . $subjectItem["sub_id"]) ?>">
                         <i class="fas fa-edit"></i>

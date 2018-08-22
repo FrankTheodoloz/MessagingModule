@@ -41,7 +41,7 @@ if (isset($_POST['email']) && isset($_POST['pwd'])) {
                             </div>
                         </div>
                         <div class="form-group mt-4">
-                            <input type="email" class="form-control mb-2" name="email" placeholder="Email" required>
+                            <input type="email" class="form-control mb-2" name="email" id="email" placeholder="Email" required>
 
                             <input type="password" class="form-control" name="pwd" placeholder="Password" required>
                         </div>

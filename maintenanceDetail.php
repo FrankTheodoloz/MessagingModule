@@ -93,7 +93,7 @@ $userNotInDistribution = fctDistributionUsersNotIn($subjectId);
                     <td><?= $userItem["usr_name"] ?></td>
                     <td><?= $userItem["usr_lastname"] ?></td>
                     <td><?= $userItem["usr_email"] ?></td>
-                    <td class="text-center"><?= fctNotificationCount($userItem["usr_id"], $subjectId) ?></td>
+                    <td class="text-center"><?= fctNotificationCount($userItem["usr_id"], $subjectId,1) ?></td>
                     <td class="text-center"><h3><i class="<?= $icon ?>"></i></h3></td>
                 </tr>
             <?php } ?>
