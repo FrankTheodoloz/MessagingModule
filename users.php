@@ -51,7 +51,7 @@ $userList = fctUserList();
             <div class="col-md-8"><h2>List of Users</h2></div>
             <div class="col-md-4"><input class="form-control " id="myInput" type="text" placeholder="Search.."/></div>
         </div>
-        <table class="table table-striped" id="myTable">
+        <table class="table table-striped">
             <thead>
             <tr>
                 <th>avatar</th>
@@ -62,7 +62,7 @@ $userList = fctUserList();
 
             </tr>
             </thead>
-            <tbody>
+            <tbody id="myTable">
 
             <?php
             foreach ($userList as $item) {

@@ -9,7 +9,7 @@
 //Constants
 define("CONST_DEBUGMODE", 0);
 define("CONST_IMAGE_PATH", "img/avatar/");
-define("CONST_TIMEOUT_DURATION", 1800); //in seconds
+define("CONST_TIMEOUT_DURATION", 360); //in seconds
 define("CONST_BCRYPT_COST", 12); //takes significantly more time above 12
 
 /*** TODO ANALYSE MORE IN DETAILS
@@ -23,7 +23,7 @@ class myPDO extends PDO
         $dbServer = "192.168.1.10";
         $dbName = "MessagingModule";
         $username = "frank";
-        $password = "1234..aa";
+        $password = "1234";
         $dsn = "mysql:host=$dbServer;dbname=$dbName;charset=utf8";
 
         $driver_options = array(

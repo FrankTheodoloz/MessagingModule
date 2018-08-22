@@ -42,7 +42,7 @@ $groupList = fctGroupList();
         <div class="col-md-8"><h3>List of Groups</h3></div>
         <div class="col-md-4"><input class="form-control " id="myInput" type="text" placeholder="Search.."/></div>
     </div>
-    <table class="table table-striped" id="myTable">
+    <table class="table table-striped">
         <thead>
         <tr>
             <th>name</th>
@@ -50,7 +50,7 @@ $groupList = fctGroupList();
             <th></th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="myTable">
 
         <?php
         foreach ($groupList as $item) {

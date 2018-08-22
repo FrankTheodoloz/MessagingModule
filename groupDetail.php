@@ -98,7 +98,7 @@ if ($pageParameter > 0) {
                 <div class="col-md-4"><input class="form-control " id="myInput" type="text" placeholder="Search.."/></div>
             </div>
 
-            <table class="table table-sm table-striped" id="myTable">
+            <table class="table table-sm table-striped">
                 <thead>
                 <tr>
                     <th>select</th>
@@ -109,7 +109,7 @@ if ($pageParameter > 0) {
 
                 </tr>
                 </thead>
-                <tbody>
+                <tbody id="myTable">
 
                 <?php foreach ($groupMembers as $memberItem) {
                     //test if editing ADMIN or SUPER users -> cannot be removed from ADMIN and USER groups

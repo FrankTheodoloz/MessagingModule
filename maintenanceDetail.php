@@ -71,7 +71,7 @@ $userNotInDistribution = fctDistributionUsersNotIn($subjectId);
         <input type="hidden" name="action" value="distributionRemove">
         <input type="hidden" name="subjectId" value="<?= $subjectId ?>">
 
-        <table class="table table-sm table-striped" id="myTable">
+        <table class="table table-sm table-striped"">
             <thead>
             <tr>
                 <th>select</th>
@@ -82,7 +82,7 @@ $userNotInDistribution = fctDistributionUsersNotIn($subjectId);
                 <th class="text-center">active</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="myTable">
 
             <?php foreach ($userInDistribution as $userItem) {
                 $userItem["usr_active"] == 1 ? $icon = "fa fa-check text-success" : $icon = "fa fa-times-circle text-danger";

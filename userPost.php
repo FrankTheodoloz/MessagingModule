@@ -11,7 +11,7 @@ session_start();
 include_once("functionsSql.inc.php");
 include_once("functionsHtml.inc.php");
 
-$target = "userDetail";
+$target = "userDetail.php";
 
 if (isset($_POST['id']) && isset($_POST['action'])) {
     $userId = $_POST['id'];

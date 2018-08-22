@@ -52,7 +52,7 @@ if ($pageParameter > 0) {
             <div class="col-md-4"><input class="form-control " id="myInput" type="text" placeholder="Search.."/></div>
         </div>
 
-        <table class="table table table-striped" id="myTable">
+        <table class="table table table-striped">
             <thead>
             <tr>
                 <th>select</th>
@@ -63,7 +63,7 @@ if ($pageParameter > 0) {
 
             </tr>
             </thead>
-            <tbody>
+            <tbody id="myTable">
 
             <?php foreach ($userList as $item) {
                 $item["usr_active"] == 1 ? $icon = "fa fa-check text-success" : $icon = "fa fa-times-circle text-danger";

@@ -155,11 +155,14 @@ $userList = fctUserList(0);
                                 <?php }
                             }
                         }
-                    } else {//invite to click a subject, will "trigger" notificationRead ?>
-
-                        <div class="text text-muted message_none"><i class="far fa-arrow-alt-circle-left"></i>
-                            <h1>Select a subject from the left pane.</h1></div>
-                    <?php } ?>
+                    } else { //there are subject
+                        if (count($subjectList) > 0) { //invite to click a subject, will "trigger" notificationRead ?>
+                            <div class="text text-muted message_none"><i class="far fa-arrow-alt-circle-left"></i>
+                                <h1>Select a subject from the left pane.</h1></div>
+                        <?php } else { ?>
+                            <div class="text text-muted text-center align-middle "><h3>Your inbox is empty.</h3></div>
+                        <?php }
+                    } ?>
                 </form>
             </div>
         </div>

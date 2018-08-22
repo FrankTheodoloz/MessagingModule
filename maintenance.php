@@ -23,7 +23,7 @@ $subjectList = fctUserSubjectList(-1);
     </div>
 
     <div class="jumbotron pt-2 pb-5 bg-white">
-        <h5 class="collapse text-justify" style="width: 90%;" id="collapseJumbo">
+        <h5 class="collapse text-justify text-muted" id="collapseJumbo">
             Distribution of messages to users is based on their relationship to a subject (distribution list).
             Users cannot "leave" conversation; only an administrator can remove them from a distribution list.
             When a user deletes a notification, messages can still be read by using the "show deleted" option.&nbsp;
@@ -40,7 +40,7 @@ $subjectList = fctUserSubjectList(-1);
         <div class="col-md-8"><h3>List of subjects</h3></div>
         <div class="col-md-4"><input class="form-control " id="myInput" type="text" placeholder="Search.."/></div>
     </div>
-    <table class="table table-striped" id="myTable">
+    <table class="table table-striped">
         <thead>
         <tr>
             <th>name</th>
@@ -52,7 +52,7 @@ $subjectList = fctUserSubjectList(-1);
         </tr>
         </thead>
 
-        <tbody>
+        <tbody id="myTable">
         <?php foreach ($subjectList as $subjectItem) {
             $nbMembers = sizeof(fctDistributionUsersIn($subjectItem['sub_id']));
             ?>
