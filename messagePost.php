@@ -37,7 +37,8 @@ if ($action == 'new') {
 
         if ($id > 0) {
             $subjectId = $id;
-            $result[] = array("success", "Success", "New subject opened.");
+            $result[] = array("success", "Success", "Message sent.");
+            $result[] = array("info", "Info", "New subject opened.");
         } else {
             $subjectId = 0;
             $result[] = array("error", "Error", "Message could not be sent.");

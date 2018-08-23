@@ -37,7 +37,7 @@ function timeoutCounter(duration) {
 
             // If the count down is over, write some text
             //document.getElementById("timeoutCounter").innerHTML = "EXPIRED";
-           location.reload();
+            window.location=window.location;
 
         }
     }, 1000);

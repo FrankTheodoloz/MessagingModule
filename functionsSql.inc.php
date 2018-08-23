@@ -602,6 +602,9 @@ function fctSubjectNew($from, $to, $subject, $content, $date = NULL)
             $sql->bindParam(':date', $date, PDO::PARAM_STR);
             $sql->execute();
 
+            $lastId = $db->lastInsertId();
+            fctNotificationMessages($lastId);
+
             //commit when everything is fine
             $db->commit();
 
@@ -830,6 +833,8 @@ function fctMessageAdd($subId, $from, $content, $date = NULL)
         $sql->execute();
 
         $lastId = $db->lastInsertId();
+
+        fctNotificationMessages($lastId);
 
     } catch (PDOException $e) {
 
