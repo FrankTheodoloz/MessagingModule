@@ -7,6 +7,7 @@
  */
 
 include_once("functionsHtml.inc.php");
+include_once("functionsSql.inc.php");
 include_once("nav.inc.php");
 
 ?>
@@ -16,7 +17,11 @@ include_once("nav.inc.php");
         <h1 class="d-inline-block">Welcome, <?= $_SESSION['user']['name'] ?></h1>
         <?= getBadge() ?>
 
-        <p>This is the welcome screen with an overview of the recent messages.</p>
+        <p>
+            <a class="btn text-muted float-right" href="?id=<?= fctUrlOpensslCipher("about.php") ?>">
+                <h3></i>about <?= fctSettingItem('SITE_CONFIG', 'SITE_NAME') ?> <i class="fas fa-angle-double-right " aria-hidden="true"></i></h3>
+            </a>
+        </p>
     </div>
 </div>
 

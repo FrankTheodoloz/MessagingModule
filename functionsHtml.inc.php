@@ -123,26 +123,6 @@ function fctUrlOpensslDecipher($ciphertext)
 }
 
 /***
- * fctFilterJS Return JS code for filtering myTable
- * Reference: https://www.w3schools.com/bootstrap4/bootstrap_filters.asp
- * @return string
- */
-function fctFilterJS()
-{
-    return '<script>
-    $(document).ready(function () {
-        $("#myInput").on("keyup", function () {
-            var value = $(this).val().toLowerCase();
-            $("#myTable tr").filter(function () {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-            });
-        });
-    });
-    </script>';
-
-}
-
-/***
  * base64_url_en/de-code
  * Reference : https://stackoverflow.com/a/5835352
  * @param $input
@@ -199,9 +179,6 @@ function fctShowToast($type, $title, $content, $duration = 5000)
 </script>';
 }
 
-function fctGetAvatars($subId){
-
-}
 ?>
 
 

@@ -1291,7 +1291,7 @@ function clearDatabase()
  * fctInsertDemoData: Populate database with demonstration data
  */
 function fctInsertDemoData()
-{
+{ include_once("config/dummytexts.php");
     clearDatabase();
 
     fctSettingAdd('SITE_CONFIG', 'SITE_NAME', 'MessagingModule');
@@ -1306,43 +1306,142 @@ function fctInsertDemoData()
 
     fctUserAdd('SUPER', 'Administrator', 'super@localhost', 'super');
     fctMembershipAdd(1, 2);
-    //fctUserChangeActive(2,1);
+    fctUserChangeActive(2, 1);
 
     fctUserAdd('Frank', 'Théodoloz', 'fthe@bluewin.ch', '1234');
     fctMembershipAdd(1, 3);
     fctUserChangeActive(3, 1);
 
-    fctUserAdd('User', '1', 'user1@localhost', 'user1');
+    fctUserAdd('Al', 'Pacino', 'usera@localhost', 'usera');
     fctMembershipAdd(2, 4);
     fctUserChangeActive(4, 1);
-
-    fctUserAdd('User', '2', 'user1@localhost', 'user1');
+    fctUserAdd('Bruce', 'Willis', 'userb@localhost', 'userb');
     fctMembershipAdd(2, 5);
     fctUserChangeActive(5, 1);
-
-    fctUserAdd('User', '3', 'user1@localhost', 'user1');
+    fctUserAdd('Clint', 'Eastwood', 'userc@localhost', 'userc');
     fctMembershipAdd(2, 6);
     fctUserChangeActive(6, 1);
-
-    fctUserAdd('User', '4', 'user1@localhost', 'user1');
+    fctUserAdd('Dustin', 'Hoffman', 'userd@localhost', 'userd');
     fctMembershipAdd(2, 7);
     fctUserChangeActive(7, 1);
-
-    fctUserAdd('User', '5', 'user1@localhost', 'user1');
+    fctUserAdd('Eddie', 'Murphy', 'usere@localhost', 'usere');
     fctMembershipAdd(2, 8);
-    //fctUserChangeActive(8, 1);
+    fctUserChangeActive(8, 1);
+    fctUserAdd('Franck', 'Dubosc', 'userf@localhost', 'userf');
+    fctMembershipAdd(2, 9);
+    fctUserChangeActive(9, 1);
+    fctUserAdd('Gerard', 'Depardieu', 'userg@localhost', 'userg');
+    fctMembershipAdd(2, 10);
+    fctUserChangeActive(10, 1);
+    fctUserAdd('Harrison', 'Ford', 'userh@localhost', 'userh');
+    fctMembershipAdd(2, 11);
+    fctUserChangeActive(11, 1);
+    fctUserAdd('Isabelle', 'Adjani', 'useri@localhost', 'useri');
+    fctMembershipAdd(2, 12);
+    //fctUserChangeActive(12, 1);
+    fctUserAdd('Jason', 'Statham', 'userj@localhost', 'userj');
+    fctMembershipAdd(2, 13);
+    fctUserChangeActive(13, 1);
+    fctUserAdd('Leslie', 'Nielsen', 'userl@localhost', 'userl');
+    fctMembershipAdd(2, 14);
+    fctUserChangeActive(14, 1);
+    fctUserAdd('Morgan', 'Freeman', 'userm@localhost', 'userm');
+    fctMembershipAdd(2, 15);
+    fctUserChangeActive(15, 1);
+    fctUserAdd('Nicole', 'Kidman', 'usern@localhost', 'usern');
+    fctMembershipAdd(2, 16);
+    fctUserChangeActive(16, 1);
+    fctUserAdd('Pierre', 'Richard', 'userp@localhost', 'userp');
+    fctMembershipAdd(2, 17);
+    fctUserChangeActive(17, 1);
+    fctUserAdd('Quantin', 'Tarantino', 'userq@localhost', 'userq');
+    fctMembershipAdd(2, 18);
+    fctUserChangeActive(18, 1);
+    fctUserAdd('Robin', 'Wiliams', 'userr@localhost', 'userr');
+    fctMembershipAdd(2, 19);
+    fctUserChangeActive(19, 1);
+    fctUserAdd('Sandra', 'Bullock', 'users@localhost', 'users');
+    fctMembershipAdd(2, 20);
+    fctUserChangeActive(20, 1);
+    fctUserAdd('Thierry', 'Lhermitte', 'usert@localhost', 'usert');
+    fctMembershipAdd(2, 21);
+    fctUserChangeActive(21, 1);
+    fctUserAdd('Vincent', 'Cassel', 'userv@localhost', 'userv');
+    fctMembershipAdd(2, 22);
+    fctUserChangeActive(22, 1);
+    fctUserAdd('Will', 'Smith', 'userw@localhost', 'userw');
+    fctMembershipAdd(2, 23);
+    fctUserChangeActive(23, 1);
 
-    fctSubjectNew(1, array(2, 3), "Sujet1", 'Message 1.1', "2018-08-01");
-    fctMessageAdd(1, 2, 'Message 1.2', "2018-08-02 13:22:12");
-
-    fctSubjectNew(3, array(1, 2), "Sujet2", 'Message 2.1', "2018-08-01");
-    fctMessageAdd(2, 1, 'Message 2.2', "2018-08-03 13:22:12");
-
-//    fctMessageAdd(1, 3, 2, 'Message 2.2', "2018-08-04 13:22:12");
+//    fctSubjectNew(1, array(2, 3), "Sujet1", 'Message 1.1', "2018-08-01");
+//    fctMessageAdd(1, 2, 'Message 1.2', "2018-08-24");
+//    fctMessageAdd(1, 3, 'Message 1.3', "2018-08-25");
+//    fctMessageAdd(1, 2, 'Message 1.4', NULL);
 //
-//    fctMessageAdd(3, 1, 1, 'Message 1.3', "2018-08-09 13:22:12");
-//
-//    fctMessageAdd(3, 1, 1, 'Message 1.4', NULL);
+//    fctSubjectNew(3, array(1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23), "Sujet2", 'Message 2.1', "2018-08-01");
+//    fctMessageAdd(2, 1, 'Message 2.2', "2018-08-03 13:22:12");
+
+fctSubjectNew(1, array(2, 3), fctGetRandomSubject()."Sujet1", fctGetRandomText(), "2018-08-01 00:03:11");
+fctMessageAdd(1, 2, fctGetRandomText(), "2018-08-08 01:37:39");
+fctMessageAdd(1, 3, fctGetRandomText(), "2018-08-08 14:34:40");
+fctMessageAdd(1, 2, fctGetRandomText(), "2018-08-09 09:15:10");
+fctMessageAdd(1, 3, fctGetRandomText(), "2018-08-11 12:39:18");
+fctMessageAdd(1, 2, fctGetRandomText(), "2018-08-15 15:04:16");
+fctMessageAdd(1, 3, fctGetRandomText(), "2018-08-23 02:24:15");
+fctMessageAdd(1, 2, fctGetRandomText(), "2018-08-23 16:56:03");
+fctSubjectNew(3, array(1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), fctGetRandomSubject()."Sujet2", fctGetRandomText(), "2018-08-04 02:34:29");
+fctMessageAdd(2, 1, fctGetRandomText(), "2018-08-04 11:52:37");
+fctMessageAdd(2, 2, fctGetRandomText(), "2018-08-07 11:41:34");
+fctMessageAdd(2, 3, fctGetRandomText(), "2018-08-09 00:47:33");
+fctMessageAdd(2, 4, fctGetRandomText(), "2018-08-09 13:54:15");
+fctMessageAdd(2, 2, fctGetRandomText(), "2018-08-11 17:07:19");
+fctMessageAdd(2, 1, fctGetRandomText(), "2018-08-13 09:04:45");
+fctMessageAdd(2, 7, fctGetRandomText(), "2018-08-14 10:16:41");
+fctMessageAdd(2, 5, fctGetRandomText(), "2018-08-19 15:33:22");
+fctMessageAdd(2, 3, fctGetRandomText(), "2018-08-20 04:56:28");
+fctMessageAdd(2, 6, fctGetRandomText(), "2018-08-21 13:19:12");
+fctMessageAdd(2, 5, fctGetRandomText(), "2018-08-22 10:28:52");
+fctMessageAdd(2, 12, fctGetRandomText(), "2018-08-24 13:32:01");
+fctSubjectNew(4, array(2, 3, 8, 13, 15), fctGetRandomSubject()."Sujet3", fctGetRandomText(), "2018-08-02 12:08:57");
+fctMessageAdd(3, 8, fctGetRandomText(), "2018-08-06 10:32:05");
+fctMessageAdd(3, 13, fctGetRandomText(), "2018-08-08 10:27:56");
+fctMessageAdd(3, 3, fctGetRandomText(), "2018-08-12 05:29:27");
+fctMessageAdd(3, 4, fctGetRandomText(), "2018-08-13 10:29:22");
+fctMessageAdd(3, 15, fctGetRandomText(), "2018-08-14 14:25:08");
+fctMessageAdd(3, 8, fctGetRandomText(), "2018-08-14 14:40:21");
+fctMessageAdd(3, 3, fctGetRandomText(), "2018-08-17 04:09:25");
+fctMessageAdd(3, 2, fctGetRandomText(), "2018-08-19 04:40:05");
+fctMessageAdd(3, 13, fctGetRandomText(), "2018-08-27 19:24:19");
+fctSubjectNew(1, array(3), fctGetRandomSubject()."Sujet4", fctGetRandomText(), "2018-08-08 02:51:35");
+fctMessageAdd(4, 3, fctGetRandomText(), "2018-08-08 07:28:37");
+fctMessageAdd(4, 1, fctGetRandomText(), "2018-08-09 05:46:32");
+fctMessageAdd(4, 3, fctGetRandomText(), "2018-08-21 10:09:18");
+fctSubjectNew(8, array(2, 6), fctGetRandomSubject()."Sujet5", fctGetRandomText(), "2018-08-02 03:21:45");
+fctMessageAdd(5, 2, fctGetRandomText(), "2018-08-11 21:43:28");
+fctMessageAdd(5, 6, fctGetRandomText(), "2018-08-18 17:41:04");
+fctMessageAdd(5, 8, fctGetRandomText(), "2018-08-23 21:49:25");
+fctSubjectNew(15, array(2, 3), fctGetRandomSubject()."Sujet6", fctGetRandomText(), "2018-08-05 09:02:58");
+fctMessageAdd(6, 2, fctGetRandomText(), "2018-08-09 08:18:34");
+fctMessageAdd(6, 3, fctGetRandomText(), "2018-08-20 03:14:36");
+fctSubjectNew(19, array(2, 4), fctGetRandomSubject()."Sujet7", fctGetRandomText(), "2018-08-05 11:32:03");
+fctMessageAdd(7, 4, fctGetRandomText(), "2018-08-07 04:16:37");
+fctMessageAdd(7, 2, fctGetRandomText(), "2018-08-16 20:59:05");
+fctMessageAdd(7, 19, fctGetRandomText(), "2018-08-18 04:10:49");
+fctMessageAdd(7, 4, fctGetRandomText(), "2018-08-22 21:01:02");
+fctSubjectNew(16, array(2, 15), fctGetRandomSubject()."Sujet8", fctGetRandomText(), "2018-08-03 00:29:04");
+fctMessageAdd(8, 15, fctGetRandomText(), "2018-08-04 11:53:53");
+fctMessageAdd(8, 16, fctGetRandomText(), "2018-08-12 19:46:52");
+fctSubjectNew(3, array(1, 2), fctGetRandomSubject()."Sujet9", fctGetRandomText(), "2018-08-04 08:58:46");
+fctMessageAdd(9, 2, fctGetRandomText(), "2018-08-09 21:46:38");
+fctMessageAdd(9, 1, fctGetRandomText(), "2018-08-18 18:41:51");
+fctMessageAdd(9, 3, fctGetRandomText(), "2018-08-19 13:26:25");
+fctSubjectNew(18, array(2,3,4,5), fctGetRandomSubject()."Sujet10", fctGetRandomText(), "2018-08-08 08:40:55");
+fctMessageAdd(10, 2, fctGetRandomText(), "2018-08-15 23:43:06");
+fctMessageAdd(10, 3, fctGetRandomText(), "2018-08-16 22:38:44");
+fctMessageAdd(10, 4, fctGetRandomText(), "2018-08-19 08:17:22");
+fctMessageAdd(10, 5, fctGetRandomText(), "2018-08-23 03:21:44");
+
+
 }
 
 //clearDatabase();

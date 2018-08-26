@@ -81,4 +81,4 @@ $subjectList = fctUserSubjectList(-1);
     </div>
 </div>
 
-<?= fctFilterJS(); ?>
+<script src="js/filter.js"></script>

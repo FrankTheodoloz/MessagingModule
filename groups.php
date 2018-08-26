@@ -80,4 +80,4 @@ $groupList = fctGroupList();
     </div>
 </div>
 
-<?= fctFilterJS(); ?>
+<script src="js/filter.js"></script>

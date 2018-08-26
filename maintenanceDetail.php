@@ -113,4 +113,4 @@ $userNotInDistribution = fctDistributionUsersNotIn($subjectId);
     </div>
 </div>
 
-<?= fctFilterJS(); ?>
+<script src="js/filter.js"></script>

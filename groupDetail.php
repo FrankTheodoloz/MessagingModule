@@ -181,7 +181,7 @@ if ($pageParameter > 0) {
     </div>
 <?php } ?>
 
-<?= fctFilterJS(); ?>
+<script src="js/filter.js"></script>
 <script>
     // data-toggle="tooltip" data-placement="right" title="Close"
     $(document).ready(function () {

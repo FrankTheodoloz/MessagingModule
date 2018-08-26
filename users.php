@@ -101,4 +101,4 @@ $userList = fctUserList();
         </div>
     </div>
 
-<?= fctFilterJS(); ?>
+<script src="js/filter.js"></script>
