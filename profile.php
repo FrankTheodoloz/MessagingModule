@@ -152,7 +152,7 @@ strtoupper($user["usr_name"]) == 'ADMIN' || strtoupper($user["usr_name"]) == 'SU
 
                     <div class="form-check form-check-inline">
                         <label class="form-check-label">
-                            <input type="radio" class="form-check-input" name="avatar" value="NULL" checked>
+                            <input type="radio" class="form-check-input" name="avatar" value="" checked>
                             <img avatar="<?= $user['usr_name'] . " " . $user['usr_lastname'] ?>" id="avatar"/>
                         </label>
                     </div>

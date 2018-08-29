@@ -579,8 +579,9 @@ function fctSubjectNew($from, $to, $subject, $content, $date = NULL)
         try {
 
             //creation of subject, distribution and first message
-            $sql = $db->prepare("INSERT INTO subject (sub_name) VALUES (:subject)");
+            $sql = $db->prepare("INSERT INTO subject (sub_name, sub_lastusrid) VALUES (:subject, :userId)");
             $sql->bindParam(':subject', $subject, PDO::PARAM_STR);
+            $sql->bindParam(':userId', $from, PDO::PARAM_STR);
             $sql->execute();
             $lastSubjectId = $db->lastInsertId();
 
@@ -603,7 +604,6 @@ function fctSubjectNew($from, $to, $subject, $content, $date = NULL)
             $sql->execute();
 
             $lastId = $db->lastInsertId();
-            fctNotificationMessages($lastId);
 
             //commit when everything is fine
             $db->commit();
@@ -615,6 +615,7 @@ function fctSubjectNew($from, $to, $subject, $content, $date = NULL)
             die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
         }
         $db = NULL; // Close connection
+        fctNotificationMessages($lastSubjectId, $lastId);
         return $lastSubjectId;
     }
 }
@@ -669,7 +670,7 @@ function fctDistributionUsersNotIn($id)
 }
 
 /***
- * fctSubjectEdit: Update a Subject name and return rowCount()
+ * fctSubjectEdit: Change a Subject name and return rowCount()
  * Usage: Administration-Subjects
  * @param $id
  * @param $name
@@ -694,6 +695,34 @@ function fctSubjectEdit($id, $name)
     $db = NULL; // Close connection
     return $result;
 }
+
+/***
+ * fctSubjectEdit: Update a Subject date and return rowCount()
+ * Usage: Administration-Subjects
+ * @param $id
+ * @param $name
+ * @return int
+ */
+function fctSubjectUpdate($subId, $userId)
+{
+    try {
+        $db = new myPDO();
+
+        $query = "UPDATE subject SET sub_lastdate=NOW(), sub_lastusrid=:userId WHERE sub_id=:subId";
+        $sql = $db->prepare($query);
+        $sql->bindParam(':subId', $subId, PDO::PARAM_INT);
+        $sql->bindParam(':userId', $userId, PDO::PARAM_STR);
+        $sql->execute();
+
+        $result = $sql->rowCount();
+
+    } catch (PDOException $e) {
+        die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
+    }
+    $db = NULL; // Close connection
+    return $result;
+}
+
 
 /***
  * fctSubjectList: Return (User's) Subject list in an array
@@ -833,14 +862,14 @@ function fctMessageAdd($subId, $from, $content, $date = NULL)
         $sql->execute();
 
         $lastId = $db->lastInsertId();
-
-        fctNotificationMessages($lastId);
+        fctSubjectUpdate($subId, $from);
 
     } catch (PDOException $e) {
 
         die("SQL Error (" . __FUNCTION__ . ") " . $e->getMessage());
     }
     $db = NULL; // Close connection
+    fctNotificationMessages($subId, $lastId);
     return $lastId;
 }
 
@@ -849,7 +878,6 @@ function fctMessageAdd($subId, $from, $content, $date = NULL)
  * --> Calls fctNotificationRead before displaying messages
  * @param int $userId
  * @param int $subjectId
- * @param int $deleted
  * @return mixed
  */
 function fctMessageList($userId, $subjectId)
@@ -1103,7 +1131,7 @@ function fctNotificationUserAdd2($subjectId, $userId)
  * @param $messageId
  * @return int
  */
-function fctNotificationMessages($messageId)
+function fctNotificationMessages($subjectId, $messageId)
 {
     try {
         $db = new myPDO();
@@ -1111,7 +1139,7 @@ function fctNotificationMessages($messageId)
         $sql->bindParam(':subId', $subjectId, PDO::PARAM_INT);
         $sql->execute();
 
-        $userList = $sql->fetchall(PDO::FETCH_BOTH);
+        $userList = $sql->fetchall(PDO::FETCH_COLUMN);
 
         $i = 0;
         foreach ($userList as $userItem) {
